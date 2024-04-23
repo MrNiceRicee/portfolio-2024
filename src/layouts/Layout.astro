@@ -1,51 +1,106 @@
 ---
+import "@fontsource-variable/inter";
+import { getImage } from "astro:assets";
+import noisy from "../assets/Grain.png";
+import noisySvg from "../assets/noise.svg";
+
 interface Props {
-	title: string;
+  title: string;
+  description?: string;
+  darkSvg?: boolean;
 }
 
-const { title } = Astro.props;
+const {
+  title,
+  darkSvg: darkSvg = true,
+  description = "Josh's personal site",
+} = Astro.props;
+
+const optimizedBackground = await getImage({ src: noisy, format: "webp" });
+const noiseBackgroundUrl = `url(${optimizedBackground.src})`;
+const noiseBackgroundSvg = `url(${noisySvg.src})`;
+const darkSvgClass = darkSvg ? "grainy-dark" : "grainy-light";
 ---
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="description" content="Astro description" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>{title}</title>
-	</head>
-	<body>
-		<slot />
-	</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class='min-w-[100dvw] min-h-[100dvh] bg-stone-50 dark:bg-stone-950 dark:text-zinc-50'>
+    <slot />
+    <div class={`${darkSvgClass !== undefined ? darkSvgClass : "grainy-light dark:grainy-dark"} z-10`}></div>
+  </body>
+  <style
+    is:global
+    define:vars={{ noiseUrl: noiseBackgroundUrl, noiseSvg: noiseBackgroundSvg }}
+  >
+    :root {
+    }
+
+    @keyframes static {
+      from {
+        transform: translateX(-1000px);
+      }
+
+      33% {
+        transform: translateY(-1000px);
+      }
+
+      66% {
+        transform: translateX(1000px);
+      }
+
+      to {
+        transform: translateY(1000px);
+      }
+    }
+
+    code {
+      font-family:
+        Menlo,
+        Monaco,
+        Lucida Console,
+        Liberation Mono,
+        DejaVu Sans Mono,
+        Bitstream Vera Sans Mono,
+        Courier New,
+        monospace;
+    }
+    /* .grainy-dark {
+      position: fixed;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+      background-image: var(--noiseUrl);
+      background-blend-mode: overlay;
+      background-size: 500px;
+      opacity: 0.15;
+      animation: static 1s steps(30) infinite alternate-reverse;
+      height: calc(100% + 2000px);
+      width: calc(100% + 2000px);
+      left: -1000px;
+      top: -1000px;
+    }
+    .grainy-light {
+      position: fixed;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+      background-image: var(--noiseSvg);
+      background-size: 200px;
+      background-blend-mode: overlay;
+      opacity: 0.2;
+      animation: static 1s linear infinite alternate-reverse;
+      height: calc(100% + 2000px);
+      width: calc(100% + 2000px);
+      left: -1000px;
+      top: -1000px;
+    } */
+  </style>
 </html>
-<style is:global>
-	:root {
-		--accent: 136, 58, 234;
-		--accent-light: 224, 204, 250;
-		--accent-dark: 49, 10, 101;
-		--accent-gradient: linear-gradient(
-			45deg,
-			rgb(var(--accent)),
-			rgb(var(--accent-light)) 30%,
-			white 60%
-		);
-	}
-	html {
-		font-family: system-ui, sans-serif;
-		background: #13151a;
-		background-size: 224px;
-	}
-	code {
-		font-family:
-			Menlo,
-			Monaco,
-			Lucida Console,
-			Liberation Mono,
-			DejaVu Sans Mono,
-			Bitstream Vera Sans Mono,
-			Courier New,
-			monospace;
-	}
-</style>
