@@ -75,83 +75,99 @@ const lightColor = "#ebebec";
               }</span
             >
           </p>
+          <p>
+            Current server time <span class="tabular-nums"
+              >{
+                Intl.DateTimeFormat(undefined, {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "numeric",
+                  second: "numeric",
+                }).format(new Date())
+              }</span
+            >
+          </p>
+          <!-- grainy overlay -->
+          <div class="grainy-light dark:grainy-dark z-50"></div>
         </div>
+        <style
+          is:global
+          define:vars={{
+            noiseUrl: noiseBackgroundUrl,
+            noiseSvg: noiseBackgroundSvg,
+          }}
+        >
+          :root {
+            --mask-left-start: 25%;
+            --mask-left-end: 75%;
+          }
+
+          @keyframes static {
+            from {
+              transform: translateX(-1000px);
+            }
+
+            33% {
+              transform: translateY(-1000px);
+            }
+
+            66% {
+              transform: translateX(1000px);
+            }
+
+            to {
+              transform: translateY(1000px);
+            }
+          }
+
+          body {
+            font-family: "Inter Variable", sans-serif;
+          }
+          code {
+            font-family:
+              Menlo,
+              Monaco,
+              Lucida Console,
+              Liberation Mono,
+              DejaVu Sans Mono,
+              Bitstream Vera Sans Mono,
+              Courier New,
+              monospace;
+          }
+        </style>
       </section>
-      <!-- grainy overlay -->
-      <div class="grainy-light dark:grainy-dark z-50"></div>
     </footer>
-    <style
-      is:global
-      define:vars={{
-        noiseUrl: noiseBackgroundUrl,
-        noiseSvg: noiseBackgroundSvg,
-      }}
-    >
-      :root {
-        --mask-left-start: 25%;
-        --mask-left-end: 75%;
-      }
+    <script is:inline define:vars={{ darkColor, lightColor }}>
+      const theme = () => {
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
 
-      @keyframes static {
-        from {
-          transform: translateX(-1000px);
+        const metaThemeColor = document.querySelector(
+          'meta[name="theme-color"]'
+        );
+        const metaAppleStatusBar = document.querySelector(
+          'meta[name="apple-mobile-web-app-status-bar-style"]'
+        );
+
+        if (prefersDark) {
+          document.documentElement.classList.add("dark");
+          metaThemeColor.setAttribute("content", darkColor);
+          metaAppleStatusBar.setAttribute("content", "black-translucent");
+        } else {
+          document.documentElement.classList.remove("dark");
+          metaThemeColor.setAttribute("content", lightColor);
+          metaAppleStatusBar.setAttribute("content", "default");
         }
+      };
 
-        33% {
-          transform: translateY(-1000px);
-        }
+      theme();
 
-        66% {
-          transform: translateX(1000px);
-        }
-
-        to {
-          transform: translateY(1000px);
-        }
-      }
-
-      body {
-        font-family: "Inter Variable", sans-serif;
-      }
-      code {
-        font-family:
-          Menlo,
-          Monaco,
-          Lucida Console,
-          Liberation Mono,
-          DejaVu Sans Mono,
-          Bitstream Vera Sans Mono,
-          Courier New,
-          monospace;
-      }
-    </style>
+      window
+        .matchMedia("(prefers-color-scheme: dark)")
+        .addEventListener("change", theme);
+    </script>
   </body>
 </html>
-<script is:inline define:vars={{ darkColor, lightColor }}>
-  const theme = () => {
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    const metaAppleStatusBar = document.querySelector(
-      'meta[name="apple-mobile-web-app-status-bar-style"]'
-    );
-
-    if (prefersDark) {
-      document.documentElement.classList.add("dark");
-      metaThemeColor.setAttribute("content", darkColor);
-      metaAppleStatusBar.setAttribute("content", "black-translucent");
-    } else {
-      document.documentElement.classList.remove("dark");
-      metaThemeColor.setAttribute("content", lightColor);
-      metaAppleStatusBar.setAttribute("content", "default");
-    }
-  };
-
-  theme();
-
-  window
-    .matchMedia("(prefers-color-scheme: dark)")
-    .addEventListener("change", theme);
-</script>
