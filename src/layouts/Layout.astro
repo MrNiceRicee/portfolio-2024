@@ -14,6 +14,7 @@ interface Props {
 const { title, description = "Josh's personal site" } = Astro.props;
 
 const optimizedBackground = await getImage({ src: noisy, format: "webp" });
+
 const noiseBackgroundUrl = `url(${optimizedBackground.src})`;
 const noiseBackgroundSvg = `url(${noisySvg.src})`;
 const darkColor = "#181615";
@@ -62,7 +63,7 @@ const lightColor = "#ebebec";
             class="underline">GitHub</a
           >
         </p>
-        <div class="py-10 space-y-4">
+        <div class="py-12 space-y-4">
           <ClientTime client:visible />
           <p>
             current server time <span class="tabular-nums"

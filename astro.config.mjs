@@ -13,5 +13,7 @@ export default defineConfig({
       enabled: true
     }
   }),
-  integrations: [tailwind(), react(), playformCompress()]
+  integrations: [tailwind(), react(), 
+    // playformCompress()
+  ]
 });
