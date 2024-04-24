@@ -20,6 +20,9 @@ importers:
       '@fontsource-variable/inter':
         specifier: ^5.0.18
         version: 5.0.18
+      '@fontsource-variable/jetbrains-mono':
+        specifier: ^5.0.21
+        version: 5.0.21
       astro:
         specifier: ^4.6.3
         version: 4.6.3(@types/node@20.12.7)(typescript@5.4.5)
@@ -679,6 +682,9 @@ packages:
 
   '@fontsource-variable/inter@5.0.18':
     resolution: {integrity: sha512-rJzSrtJ3b7djiGFvRuTe6stDfbYJGhdQSfn2SI2WfXviee7Er0yKAHE5u7FU7OWVQQQ1x3+cxdmx9NdiAkcrcA==}
+
+  '@fontsource-variable/jetbrains-mono@5.0.21':
+    resolution: {integrity: sha512-LL/57KBbM3r0UMuN6tSeYExiBObt0QuGq49m1FyoDFIv1GAcuKU0EQ/GAKJ/yt3R8onOCD3f5X9Dln//G6uzRQ==}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -3180,6 +3186,8 @@ snapshots:
   '@fastify/busboy@2.1.1': {}
 
   '@fontsource-variable/inter@5.0.18': {}
+
+  '@fontsource-variable/jetbrains-mono@5.0.21': {}
 
   '@isaacs/cliui@8.0.2':
     dependencies:

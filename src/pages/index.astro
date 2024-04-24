@@ -1,17 +1,37 @@
 ---
+import { getImage } from "astro:assets";
 import Layout from "../layouts/Layout.astro";
+import profile from "../assets/profile.png";
+
+const optimizedProfile = await getImage({ src: profile, format: "webp" });
 ---
 
-<Layout
-  title="Josh's corner"
-  description="Josh's personal site"
-  darkSvg={false}
->
-  <main class="min-w-[100dvw] min-h-[100dvh] my-12 sm:my-32">
-    <header class="flex max-w-2xl mx-auto p-4 items-start flex-col text-medium font-medium">
-      <a href="/">Joshua Constantine Santos</a>
-			<p class="leading-none text-zinc-500 dark:text-zinc-400">Full-stack developer</p>
+<Layout title="Josh's corner" description="Josh's personal site">
+  <main class="my-12 sm:my-24 space-y-10">
+    <header
+      class="flex flex-col max-w-2xl mx-auto p-4 text-medium font-medium font-mono"
+    >
+      <img
+        src={optimizedProfile.src}
+        alt="Joshua Constantine Santos"
+        class="rounded-full w-32 h-32 object-cover sm:mb-[-1.1rem] sm:ml-[10.4rem] z-[1] transition-all duration-300 ease-in-out"
+      />
+      <a href="/" class="font-bold">Joshua Constantine Santos</a>
+      <p class="leading-none text-zinc-500 dark:text-zinc-400 text-lg tracking-[0.08rem]">
+        Full-stack developer
+      </p>
     </header>
+
+    <section class="mx-auto max-w-2xl p-4">
+      <header>
+        <h2 class="font-mono font-medium">who am i,</h2>
+      </header>
+      <p class="font-mono text-zinc-500 dark:text-zinc-400 text-pretty">
+        I am a full-stack developer with a passion for building, learning and
+        collaborating with others. Started my journey in coding when I was 10
+        years old, writing in Lua and making games in Roblox.
+      </p>
+    </section>
   </main>
 </Layout>
 
