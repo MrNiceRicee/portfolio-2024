@@ -7,7 +7,6 @@ on:
 
 jobs:
   deploy-to-cloudflare:
-    needs: update-date
     runs-on: ubuntu-latest
     permissions:
       contents: read
