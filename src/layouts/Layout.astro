@@ -60,10 +60,10 @@ const lightColor = "#ebebec";
             class="underline">GitHub</a
           >
         </p>
-        <div class="pt-10 space-y-4">
+        <div class="py-10 space-y-4">
           <ClientTime client:only="react" />
           <p>
-            Current server time <span class="tabular-nums"
+            current server time <span class="tabular-nums"
               >{
                 Intl.DateTimeFormat(undefined, {
                   year: "numeric",
@@ -130,7 +130,7 @@ const lightColor = "#ebebec";
   }
 </style>
 
-<script is:inline define:vars={{ darkColor, lightColor }}>
+<script define:vars={{ darkColor, lightColor }}>
   const theme = () => {
     const prefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)"
