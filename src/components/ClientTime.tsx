@@ -1,7 +1,7 @@
 import { lastUpdated } from "../constants/lastUpdated";
 
 const ClientTime = () => {
-  console.log(lastUpdated)
+
   return (
     <div>
       <p>
