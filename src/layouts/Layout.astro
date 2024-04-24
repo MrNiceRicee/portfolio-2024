@@ -4,7 +4,7 @@ import "@fontsource-variable/jetbrains-mono";
 import { getImage } from "astro:assets";
 import noisy from "../assets/Grain.png";
 import noisySvg from "../assets/noise.svg";
-import { ClientTime } from "../components/ClientTime";
+import ClientTime from "../components/ClientTime";
 
 interface Props {
   title: string;
@@ -60,7 +60,7 @@ const lightColor = "#ebebec";
             class="underline">GitHub</a
           >
         </p>
-        <div class="pt-10">
+        <div class="pt-10 space-y-4">
           <ClientTime client:only="react" />
           <p>
             Current server time <span class="tabular-nums"
@@ -79,82 +79,82 @@ const lightColor = "#ebebec";
           <!-- grainy overlay -->
           <div class="grainy-light dark:grainy-dark z-50"></div>
         </div>
-        <style
-          is:global
-          define:vars={{
-            noiseUrl: noiseBackgroundUrl,
-            noiseSvg: noiseBackgroundSvg,
-          }}
-        >
-          :root {
-            --mask-left-start: 25%;
-            --mask-left-end: 75%;
-          }
-
-          @keyframes static {
-            from {
-              transform: translateX(-1000px);
-            }
-
-            33% {
-              transform: translateY(-1000px);
-            }
-
-            66% {
-              transform: translateX(1000px);
-            }
-
-            to {
-              transform: translateY(1000px);
-            }
-          }
-
-          body {
-            font-family: "Inter Variable", sans-serif;
-          }
-          code {
-            font-family:
-              Menlo,
-              Monaco,
-              Lucida Console,
-              Liberation Mono,
-              DejaVu Sans Mono,
-              Bitstream Vera Sans Mono,
-              Courier New,
-              monospace;
-          }
-        </style>
       </section>
     </footer>
-    <script is:inline define:vars={{ darkColor, lightColor }}>
-      const theme = () => {
-        const prefersDark = window.matchMedia(
-          "(prefers-color-scheme: dark)"
-        ).matches;
-
-        const metaThemeColor = document.querySelector(
-          'meta[name="theme-color"]'
-        );
-        const metaAppleStatusBar = document.querySelector(
-          'meta[name="apple-mobile-web-app-status-bar-style"]'
-        );
-
-        if (prefersDark) {
-          document.documentElement.classList.add("dark");
-          metaThemeColor.setAttribute("content", darkColor);
-          metaAppleStatusBar.setAttribute("content", "black-translucent");
-        } else {
-          document.documentElement.classList.remove("dark");
-          metaThemeColor.setAttribute("content", lightColor);
-          metaAppleStatusBar.setAttribute("content", "default");
-        }
-      };
-
-      theme();
-
-      window
-        .matchMedia("(prefers-color-scheme: dark)")
-        .addEventListener("change", theme);
-    </script>
   </body>
 </html>
+
+<style
+  is:global
+  define:vars={{
+    noiseUrl: noiseBackgroundUrl,
+    noiseSvg: noiseBackgroundSvg,
+  }}
+>
+  :root {
+    --mask-left-start: 25%;
+    --mask-left-end: 75%;
+  }
+
+  @keyframes static {
+    from {
+      transform: translateX(-1000px);
+    }
+
+    33% {
+      transform: translateY(-1000px);
+    }
+
+    66% {
+      transform: translateX(1000px);
+    }
+
+    to {
+      transform: translateY(1000px);
+    }
+  }
+
+  body {
+    font-family: "Inter Variable", sans-serif;
+  }
+  code {
+    font-family:
+      Menlo,
+      Monaco,
+      Lucida Console,
+      Liberation Mono,
+      DejaVu Sans Mono,
+      Bitstream Vera Sans Mono,
+      Courier New,
+      monospace;
+  }
+</style>
+
+<script is:inline define:vars={{ darkColor, lightColor }}>
+  const theme = () => {
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    const metaAppleStatusBar = document.querySelector(
+      'meta[name="apple-mobile-web-app-status-bar-style"]'
+    );
+
+    if (prefersDark) {
+      document.documentElement.classList.add("dark");
+      metaThemeColor.setAttribute("content", darkColor);
+      metaAppleStatusBar.setAttribute("content", "black-translucent");
+    } else {
+      document.documentElement.classList.remove("dark");
+      metaThemeColor.setAttribute("content", lightColor);
+      metaAppleStatusBar.setAttribute("content", "default");
+    }
+  };
+
+  theme();
+
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", theme);
+</script>
