@@ -4,7 +4,7 @@ import "@fontsource-variable/jetbrains-mono";
 import { getImage } from "astro:assets";
 import noisy from "../assets/Grain.png";
 import noisySvg from "../assets/noise.svg";
-import { lastUpdated } from "../constants/lastUpdated";
+import { ClientTime } from "../components/ClientTime";
 
 interface Props {
   title: string;
@@ -61,20 +61,7 @@ const lightColor = "#ebebec";
           >
         </p>
         <div class="pt-10">
-          <p>
-            Last updated on <span class="tabular-nums"
-              >{
-                Intl.DateTimeFormat(undefined, {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
-                  second: "numeric",
-                }).format(new Date(lastUpdated))
-              }</span
-            >
-          </p>
+          <ClientTime client:only="react" />
           <p>
             Current server time <span class="tabular-nums"
               >{
