@@ -42,6 +42,8 @@ const lightColor = "#ebebec";
   </head>
   <body
     class="min-w-[100dvw] min-h-[100dvh] bg-stone-50 dark:bg-stone-950 dark:text-zinc-50"
+    data-dark-color={darkColor}
+    data-light-color={lightColor}
   >
     <slot />
     <footer class="mt-56 px-4">
@@ -89,6 +91,8 @@ const lightColor = "#ebebec";
   define:vars={{
     noiseUrl: noiseBackgroundUrl,
     noiseSvg: noiseBackgroundSvg,
+    darkColor,
+    lightColor,
   }}
 >
   :root {
@@ -130,22 +134,29 @@ const lightColor = "#ebebec";
   }
 </style>
 
-<script define:vars={{ darkColor, lightColor }}>
+<!-- <script define:vars={{ darkColor, lightColor }}> -->
+<script>
   const theme = () => {
     const prefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)"
     ).matches;
+    // const darkColor = "#181615";
+    // const lightColor = "#ebebec";
+    const darkColor = document.documentElement.dataset["dark-color"];
+    const lightColor = document.documentElement.dataset["light-color"];
 
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     const metaAppleStatusBar = document.querySelector(
       'meta[name="apple-mobile-web-app-status-bar-style"]'
     );
 
-    if (prefersDark) {
+    if (prefersDark && metaThemeColor && metaAppleStatusBar && darkColor) {
       document.documentElement.classList.add("dark");
       metaThemeColor.setAttribute("content", darkColor);
       metaAppleStatusBar.setAttribute("content", "black-translucent");
-    } else {
+      return;
+    }
+    if (metaThemeColor && metaAppleStatusBar && lightColor) {
       document.documentElement.classList.remove("dark");
       metaThemeColor.setAttribute("content", lightColor);
       metaAppleStatusBar.setAttribute("content", "default");
