@@ -4,6 +4,7 @@ import "@fontsource-variable/jetbrains-mono";
 import { getImage } from "astro:assets";
 import noisy from "../assets/Grain.png";
 import noisySvg from "../assets/noise.svg";
+import { lastUpdated } from "../constants/lastUpdated";
 
 interface Props {
   title: string;
@@ -15,14 +16,22 @@ const { title, description = "Josh's personal site" } = Astro.props;
 const optimizedBackground = await getImage({ src: noisy, format: "webp" });
 const noiseBackgroundUrl = `url(${optimizedBackground.src})`;
 const noiseBackgroundSvg = `url(${noisySvg.src})`;
+const darkColor = "#181615";
+const lightColor = "#ebebec";
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      id="apple-status-bar"
+      content="default"
+    />
+    <meta name="theme-color" id="theme-color" content={darkColor} />
     <!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg" /> -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -35,10 +44,10 @@ const noiseBackgroundSvg = `url(${noisySvg.src})`;
     class="min-w-[100dvw] min-h-[100dvh] bg-stone-50 dark:bg-stone-950 dark:text-zinc-50"
   >
     <slot />
-    <footer class="mt-56">
+    <footer class="mt-56 px-4">
       <div class="w-full h-[1px] bg-zinc-600 dark:bg-zinc-500 slight-x-mask">
       </div>
-      <section class="mx-auto max-w-2xl py-10 font-mono">
+      <section class="mx-auto max-w-2xl py-10 font-mono text-pretty">
         <a href="/" class="font-mono">Joshua Constantine Santos</a>
         <p class="text-sm text-zinc-500 dark:text-zinc-400">
           connect with me <a
@@ -51,6 +60,22 @@ const noiseBackgroundSvg = `url(${noisySvg.src})`;
             class="underline">GitHub</a
           >
         </p>
+        <div class="pt-10">
+          <p>
+            Last updated on <span class="tabular-nums"
+              >{
+                Intl.DateTimeFormat("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "numeric",
+                  second: "numeric",
+                }).format(new Date(lastUpdated))
+              }</span
+            >
+          </p>
+        </div>
       </section>
       <!-- grainy overlay -->
       <div class="grainy-light dark:grainy-dark z-50"></div>
@@ -102,3 +127,31 @@ const noiseBackgroundSvg = `url(${noisySvg.src})`;
     </style>
   </body>
 </html>
+<script is:inline define:vars={{ darkColor, lightColor }}>
+  const theme = () => {
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    const metaAppleStatusBar = document.querySelector(
+      'meta[name="apple-mobile-web-app-status-bar-style"]'
+    );
+
+    if (prefersDark) {
+      document.documentElement.classList.add("dark");
+      metaThemeColor.setAttribute("content", darkColor);
+      metaAppleStatusBar.setAttribute("content", "black-translucent");
+    } else {
+      document.documentElement.classList.remove("dark");
+      metaThemeColor.setAttribute("content", lightColor);
+      metaAppleStatusBar.setAttribute("content", "default");
+    }
+  };
+
+  theme();
+
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", theme);
+</script>

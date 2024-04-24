@@ -4,14 +4,13 @@ import plugin from 'tailwindcss/plugin'
 /** @type {import('tailwindcss').Config} */
 export default {
 	content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+  darkMode: 'class',
 	theme: {
-		// container: {
-    //   center: true,
-    //   padding: "2rem",
-    //   screens: {
-    //     "2xl": "1400px",
-    //   },
-    // },
+    screens: {
+      ...defaultTheme.screens,
+      'xs': '475px',
+      'phone': '320px',
+    },
 		extend: {
       fontFamily: {
         sans: ['Inter', ...defaultTheme.fontFamily.sans],
@@ -28,7 +27,7 @@ export default {
         pointerEvents: 'none',
         // backgroundImage: 'var(--noiseUrl)',
         backgroundImage: 'var(--noiseSvg)',
-        backgroundSize: '400px',
+        backgroundSize: '450px',
         backgroundBlendMode: 'screen',
         opacity: '0.2',
         animation: 'static 1s steps(30) infinite alternate-reverse',
@@ -44,8 +43,8 @@ export default {
         pointerEvents: 'none',
         backgroundImage: 'var(--noiseSvg)',
         // backgroundImage: 'var(--noiseUrl)',
-        backgroundSize: '400px',
-        backgroundBlendMode: 'overlay',
+        backgroundSize: '450px',
+        backgroundBlendMode: 'screen',
         opacity: '.35',
         animation: 'static 1s linear infinite alternate-reverse',
         height: 'calc(100% + 2000px)',
