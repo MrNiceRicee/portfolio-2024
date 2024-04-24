@@ -2,10 +2,10 @@
 import Layout from "../layouts/Layout.astro";
 import SillyLittleGuy from "../components/SillyLittleGuy";
 import HeroSections from "../components/HeroSections.astro";
-
+import Github from "../components/icons/Github.astro";
 ---
 
-<Layout title="Josh's corner" description="Josh's personal site">
+<Layout title="Josh's corner" description="Josh's personal site. I am a fullstack developer">
   <main class="my-12 sm:my-24 space-y-12">
     <header
       class="flex flex-col max-w-2xl mx-auto p-4 text-medium font-medium font-mono"
@@ -25,7 +25,7 @@ import HeroSections from "../components/HeroSections.astro";
 
     <HeroSections title="Who am I">
       <p class="text-zinc-500 dark:text-zinc-400 text-pretty">
-        I am a full-stack developer with a passion for building, learning and
+        I am a fullstack developer with a passion for building, learning and
         collaborating with others. Started my journey in coding when I was 10
         years old, writing in Lua and making games in Roblox.
       </p>
@@ -67,6 +67,131 @@ import HeroSections from "../components/HeroSections.astro";
             <span class="text-sm font-normal ml-8 sm:ml-0">
               1st engineering hire
             </span>
+          </p>
+        </li>
+      </ul>
+    </HeroSections>
+
+    <HeroSections title="Fun Projects">
+      <ul class="space-y-10 ml-8 pt-4 text-pretty">
+        <li class="flex gap-y-2 flex-col">
+          <div class="flex justify-between">
+            <a
+              href="https://www.barbenheimer.com/"
+              target="_blank"
+              class="hover:underline"
+            >
+              <h3 class="font-medium">Barbenheimer</h3>
+            </a>
+            <a
+              href="https://github.com/mrnicericee/barbenheimer"
+              target="_blank"
+            >
+              <Github class="w-6 h-6" />
+            </a>
+          </div>
+          <p
+            class="text-xs font-normal ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400"
+          >
+            NextJs, React, Typescript, Tailwind, ShadCN, Zod, Vercel,
+            Drizzle, Planetscale, Postgres, Supabase, Cloudflare
+          </p>
+          <p
+            class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
+          >
+            When the craze with Barbie and Oppenheimer dropping on the same day.
+            I wanted to make a funny joke about if it were like the US elections
+            complete with an Electoral College map.
+            <astro-blurrable data-status="idle">
+              Unfortunately, someone figured out how I would check unique votes,
+              and staretd to cheat
+            </astro-blurrable>
+          </p>
+        </li>
+        <li class="flex gap-y-2 flex-col">
+          <div class="flex justify-between">
+            <h3>Foodtok</h3>
+            <a href="https://github.com/MrNiceRicee/foodtok" target="_blank">
+              <Github class="w-6 h-6" />
+            </a>
+          </div>
+          <p
+            class="text-xs font-normal ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400"
+          >
+            Firebase, React, Typescript, Tan-Query, Tan-Table, React-Router,
+            Axios, Tailwind, Recoil, Supabase, Vite, Docker, Express, Postgres, Google Cloud Platform
+          </p>
+          <p
+            class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
+          >
+            It was difficult to find tiktok recipe videos that I saved for
+            later. The project's goal was copy the video url, embed the video,
+            and get the title and description. Then later, if I want to look for
+            "shrimp", I'd get all the related videos
+            <astro-blurrable data-status="idle">
+              I also made my own little schema validator, but zod is SOOO much
+              better
+            </astro-blurrable>
+          </p>
+        </li>
+        <li class="flex gap-y-2 flex-col">
+          <div class="flex justify-between">
+            <h3>
+              Hive Codes <span class="text-xs font-normal">(exploratory)</span>
+            </h3>
+            <a href="https://github.com/MrNiceRicee/hive-codes" target="_blank">
+              <Github class="w-6 h-6" />
+            </a>
+          </div>
+          <p
+            class="text-xs font-normal ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400"
+          >
+            NextJs (App Router), React, Typescript, Tailwind, Tan-Query,
+            Drizzle, Open-Props, Zod, Postgres, Neon
+          </p>
+          <p
+            class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
+          >
+            Next App Router at the time was in beta, same with the server
+            actions. I wanted to explore what React Server Components (RSC)
+            could do. I also wanted to explore pg_trgm, to do some typo-tolerant
+            text searches. Tested out Open Props to help with the styling.
+            <astro-blurrable data-status="idle">
+              RSC is very <bold class="font-bold">cool</bold>, excited to see
+              what more it can do in the future
+            </astro-blurrable>
+          </p>
+        </li>
+        <li class="flex gap-y-2 flex-col">
+          <div class="flex justify-between">
+            <h3>
+              Some Chat App <span class="text-xs font-normal"
+                >(exploratory)</span
+              >
+            </h3>
+            <a
+              href="https://github.com/MrNiceRicee/chatapp-monorepo"
+              target="_blank"
+            >
+              <Github class="w-6 h-6" />
+            </a>
+          </div>
+          <p
+            class="text-xs font-normal ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400"
+          >
+            NextJs, Turbo, React, Typescript, Tailwind, tRPC, jotai, Fastify,
+            Upstash, Redis, Vercel, Railway
+          </p>
+          <p
+            class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
+          >
+            I wanted to explore more about real-time, monorepos, and redis.
+            Picked between server-side-events and websockets, went with the
+            latter. It was cool running all the apps at once with turbo, and
+            also using Upstash (redis) as the persistence layer.
+            <astro-blurrable data-status="idle">
+              I know, using redis as the database is bad
+            </astro-blurrable>
           </p>
         </li>
       </ul>

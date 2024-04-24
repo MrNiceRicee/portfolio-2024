@@ -48,22 +48,51 @@ const lightColor = "#ebebec";
   >
     <slot />
     <footer class="mt-56 px-4">
-      <div class="w-full h-[1px] bg-zinc-500 dark:bg-zinc-600 slight-x-mask"> 
+      <div class="w-full h-[1px] bg-zinc-500 dark:bg-zinc-600 slight-x-mask">
       </div>
-      <section class="mx-auto max-w-2xl py-10 font-mono text-pretty">
-        <a href="/" class="font-mono">Joshua Constantine Santos</a>
-        <p class="text-sm text-zinc-500 dark:text-zinc-400">
-          connect with me <a
-            href="https://www.twitter.com/mrnicericee"
-            target="_blank"
-            class="underline">@Twitter</a
-          >,look through some of my code on <a
-            href="https://github.com/mrnicericee"
-            target="_blank"
-            class="underline">GitHub</a
-          >
+      <section class="mx-auto max-w-2xl py-10 font-mono text-pretty space-y-8">
+        <div>
+          <a href="/" class="font-mono">Joshua Constantine Santos</a>
+          <p class="text-sm">
+            <span class="text-zinc-500 dark:text-zinc-400">
+              connect with me
+            </span>
+            <a
+              href="https://www.twitter.com/mrnicericee"
+              target="_blank"
+              class="underline">@Twitter</a
+            >
+            <span class="text-zinc-500 dark:text-zinc-400"> or on </span>
+            <a
+              href="https://www.linkedin.com/in/joshua-constantine-santos/"
+              target="_blank"
+              class="underline">LinkedIn</a
+            ><span class="text-zinc-500 dark:text-zinc-400"
+              >. Look through some of my code on
+            </span>
+            <a
+              href="https://github.com/mrnicericee"
+              target="_blank"
+              class="underline"
+            >
+              GitHub</a
+            >
+          </p>
+        </div>
+        <p class="text-sm">
+          <span class="text-zinc-500 dark:text-zinc-400">
+            Silly little guy made by
+          </span>
+          <a href="gyuppii.carrd.co" target="_blank" class="underline"
+            >Gyuppii</a
+          ><astro-blurrable data-status="idle"
+            ><span class="text-zinc-500 dark:text-zinc-400"
+              >. I absolutely love the silly little guy, on mobile he goes to
+              the bottom right corner and just chills.
+            </span>
+          </astro-blurrable>
         </p>
-        <div class="py-12 space-y-4">
+        <div class="space-y-2 text-sm">
           <ClientTime client:visible />
           <p>
             current server time <span class="tabular-nums"
@@ -78,6 +107,12 @@ const lightColor = "#ebebec";
                 }).format(new Date())
               }</span
             >
+          </p>
+          <p>
+            Built in
+            <a href="https://astro.build/" target="_blank" class="underline"
+              >Astro</a
+            >, made with ❤️
           </p>
         </div>
       </section>
@@ -166,4 +201,81 @@ const lightColor = "#ebebec";
   window
     .matchMedia("(prefers-color-scheme: dark)")
     .addEventListener("change", theme);
+</script>
+
+<script>
+  // i could move this to a component, but...
+  // i saw it adds extra script files 🤷🏽 so i'm keeping it here
+  const activeBlurrable = new Set<Blurrable>();
+
+  class Blurrable extends HTMLElement {
+    private _status: "idle" | "active" = "idle";
+    // if idle = blur(4px)
+    // if active = blur(0px)
+    constructor() {
+      super();
+      this.setAttribute(
+        "class",
+        "transition-all duration-200 ease-in-out cursor-pointer"
+      );
+      this._status =
+        this.getAttribute("data-status") === "active" ? "active" : "idle";
+      this.updateStyle();
+
+      this.addEventListener("click", this.toggleStatus.bind(this));
+      // if a mobile device, then do not add hover events
+      if (!("ontouchstart" in window)) {
+        this.addEventListener("mouseenter", () => (this.status = "active"));
+      }
+    }
+
+    get status(): "idle" | "active" {
+      return this._status;
+    }
+
+    set status(value: "idle" | "active") {
+      if (value === "idle" || value === "active") {
+        this._status = value;
+        this.dataset.status = value;
+        this.updateStyle();
+      }
+      if (value === "active") {
+        activeBlurrable.add(this);
+        // unsure if this is good UX, i mean it's cool but feels weird
+        // if (activeBlurrable.size > 1) {
+        //   // that means we need to remove active from all other blurrable elements
+        //   activeBlurrable.forEach((blurrable) => {
+        //     if (blurrable !== this) {
+        //       blurrable.status = "idle";
+        //     }
+        //   });
+        // }
+      }
+    }
+
+    private toggleStatus(event: MouseEvent) {
+      event.stopPropagation();
+      this.status = this.status === "active" ? "idle" : "active";
+    }
+
+    private updateStyle() {
+      this.style.filter = this._status === "active" ? "blur(0px)" : "blur(4px)";
+    }
+  }
+
+  customElements.define("astro-blurrable", Blurrable);
+
+  document.addEventListener("click", (event) => {
+    // click anywhere else to remove active on non target blurrable elements
+    // if event target is blurrable element, then do nothing
+    if (event.target instanceof Blurrable) {
+      return;
+    }
+    activeBlurrable.forEach((blurrable) => {
+      if (!blurrable.contains(event.target as Node)) {
+        blurrable.status = "idle";
+        activeBlurrable.delete(blurrable);
+      }
+    });
+  });
 </script>
