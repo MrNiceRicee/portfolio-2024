@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Update date in file
         run: |
@@ -19,7 +21,13 @@ jobs:
           git config --global user.email 'actions@github.com'
           git add src/constants/lastUpdated.js
           git commit -m 'Update last updated date'
-          git push
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes to commit."
+          else
+            git push origin HEAD:${{ github.ref }}
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-to-cloudflare:
     needs: update-date
