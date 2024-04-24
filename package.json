@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
+    "update-stamp": "echo \"export const lastUpdated = '$(date -u +\"%Y-%m-%d %H:%M:%S UTC\")';\" > src/constants/lastUpdated.ts",
     "build": "astro check && astro build",
     "preview": "astro build && wrangler pages dev",
     "astro": "astro",
