@@ -216,11 +216,12 @@ const lightColor = "#ebebec";
       super();
       this.setAttribute(
         "class",
-        "transition-all duration-200 ease-in-out cursor-pointer"
+        "transition-all duration-200 ease-in-out cursor-pointer data-[status=idle]:blur-sm"
+        // redacted look
+        // "transition-all duration-200 ease-in-out data-[status=idle]:bg-zinc-900 data-[status=idle]:text-transparent dark:data-[status=idle]:bg-stone-200"
       );
       this._status =
         this.getAttribute("data-status") === "active" ? "active" : "idle";
-      this.updateStyle();
 
       this.addEventListener("click", this.toggleStatus.bind(this));
       // if a mobile device, then do not add hover events
@@ -237,7 +238,6 @@ const lightColor = "#ebebec";
       if (value === "idle" || value === "active") {
         this._status = value;
         this.dataset.status = value;
-        this.updateStyle();
       }
       if (value === "active") {
         activeBlurrable.add(this);
@@ -256,10 +256,6 @@ const lightColor = "#ebebec";
     private toggleStatus(event: MouseEvent) {
       event.stopPropagation();
       this.status = this.status === "active" ? "idle" : "active";
-    }
-
-    private updateStyle() {
-      this.style.filter = this._status === "active" ? "blur(0px)" : "blur(4px)";
     }
   }
 
