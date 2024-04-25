@@ -37,97 +37,109 @@ import Github from "../components/icons/Github.astro";
     <HeroSections title="Some experiences">
       <ul class="space-y-6 ml-8 pt-4 text-pretty">
         <li>
-          <p class="font-medium flex justify-between sm:flex-row flex-col">
-            <span>
-              Fullstack engineer, <span
-                class="font-normal text-zinc-500 dark:text-zinc-400"
-                >Kipsi Software</span
-              >
-            </span>
-            <span
-              class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
+          <details class="details-no-disclosure">
+            <summary class="cursor-pointer">
+              <p class="font-medium flex justify-between sm:flex-row flex-col">
+                <span>
+                  Fullstack engineer, <span
+                    class="font-normal text-zinc-500 dark:text-zinc-400"
+                    >Kipsi Software</span
+                  >
+                </span>
+                <span
+                  class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
+                >
+                  October 2023 - March 2024
+                </span>
+              </p>
+            </summary>
+            <ul
+              class="space-y-4 ml-8 pt-4 text-pretty text-sm list-disc text-zinc-500 dark:text-zinc-400"
             >
-              October 2023 - March 2024
-            </span>
-          </p>
-          <!-- <ul
-            class="space-y-4 ml-8 pt-4 text-pretty text-sm list-disc text-zinc-500 dark:text-zinc-400"
-          >
-            <li>
-              Identified and improved unnecessary repetitive re-renders in core
-              hot routes
-            </li>
-            <li>
-              Implemented easy shareable views by enhancing search, sort and
-              table functions
-            </li>
-          </ul> -->
+              <li>
+                Identified and improved unnecessary repetitive re-renders in
+                core hot routes
+              </li>
+              <li>
+                Implemented easy shareable views by enhancing search, sort and
+                table functions
+              </li>
+            </ul>
+          </details>
         </li>
         <li>
-          <p class="font-medium flex justify-between sm:flex-row flex-col">
-            <span>
-              Fullstack engineer, <span
-                class="font-normal text-zinc-500 dark:text-zinc-400"
-                >SoftLedger</span
-              >
-            </span>
-            <span
-              class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
+          <details class="details-no-disclosure">
+            <summary class="cursor-pointer">
+              <p class="font-medium flex justify-between sm:flex-row flex-col">
+                <span>
+                  Fullstack engineer, <span
+                    class="font-normal text-zinc-500 dark:text-zinc-400"
+                    >SoftLedger</span
+                  >
+                </span>
+                <span
+                  class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
+                >
+                  August 2021 - September 2023
+                </span>
+              </p>
+              <span class="text-sm font-normal ml-8 sm:ml-4">
+                1st engineering hire
+              </span>
+            </summary>
+            <ul
+              class="space-y-4 ml-8 pt-4 text-pretty text-sm list-disc text-zinc-500 dark:text-zinc-400"
             >
-              August 2021 - September 2023
-            </span>
-          </p>
-          <span class="text-sm font-normal ml-8 sm:ml-4">
-            1st engineering hire
-          </span>
-          <!-- <ul
-            class="space-y-4 ml-8 pt-4 text-pretty text-sm list-disc text-zinc-500 dark:text-zinc-400"
-          >
-            <li>
-              Rewrote the api-gateway node service to golang, improving
-              efficiency and reducing latency for all api requests. 10x smaller
-              containers & 3x more throughput
-            </li>
-            <li>Led the transition from Javascript to Typescript</li>
-            <li>
-              Built an MVP to integrate all of customer's cryptocurrency
-              transactions to the accounting general ledger
-            </li>
-            <li>
-              Improved frontend buildtimes by 10x, reduced build size by 5x
-            </li>
-          </ul> -->
+              <li>
+                Rewrote the api-gateway node service to golang, improving
+                efficiency and reducing latency for all api requests. 10x
+                smaller containers & 3x more throughput
+              </li>
+              <li>Led the transition from Javascript to Typescript</li>
+              <li>
+                Built an MVP to integrate all of customer's cryptocurrency
+                transactions to the accounting general ledger
+              </li>
+              <li>
+                Improved frontend buildtimes by 10x, reduced build size by 5x
+              </li>
+            </ul>
+          </details>
         </li>
         <li>
-          <p class="font-medium flex justify-between sm:flex-row flex-col">
-            <span>
-              Fullstack engineer, <span
-                class="font-normal text-zinc-500 dark:text-zinc-400"
-                >MNNML Health</span
-              >
-            </span>
-            <span
-              class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
+          <details class="details-no-disclosure">
+            <summary class="cursor-pointer">
+              <p class="font-medium flex justify-between sm:flex-row flex-col">
+                <span>
+                  Fullstack engineer, <span
+                    class="font-normal text-zinc-500 dark:text-zinc-400"
+                    >MNNML Health</span
+                  >
+                </span>
+                <span
+                  class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
+                >
+                  August 2020 - March 2023
+                </span>
+              </p>
+              <span class="text-sm font-normal ml-8 sm:ml-4">
+                1st engineering hire
+              </span>
+            </summary>
+            <ul
+              class="space-y-4 ml-8 pt-4 text-pretty text-sm list-disc text-zinc-500 dark:text-zinc-400"
             >
-              August 2020 - March 2023
-            </span>
-          </p>
-          <span class="text-sm font-normal ml-8 sm:ml-4">
-            1st engineering hire
-          </span>
-          <!-- <ul
-            class="space-y-4 ml-8 pt-4 text-pretty text-sm list-disc text-zinc-500 dark:text-zinc-400"
-          >
-            <li>
-              Restructured monoservice architecture to microservices using AWS
-              EKS
-            </li>
-            <li>
-              Transitioned Javascript repo to Typescript. Used tRPC to enable
-              backend to frontend typesafety.
-            </li>
-            <li>Reduced backend code by 65%, reduced build times by 2x.</li>
-          </ul> -->
+              <li>
+                Restructured monoservice architecture to microservices using AWS
+                EKS
+              </li>
+              <li>
+                Transitioned Javascript repo to Typescript. Used tRPC to enable
+                backend to frontend typesafety.
+              </li>
+              <li>Reduced backend code by 65%, reduced build times by 2x.</li>
+            </ul>
+          </details>
         </li>
       </ul>
     </HeroSections>
@@ -148,6 +160,7 @@ import Github from "../components/icons/Github.astro";
               target="_blank"
             >
               <Github class="w-6 h-6" />
+              <span class="sr-only">Barbenheimer on GitHub</span>
             </a>
           </div>
           <p class="text-xs ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400">
@@ -171,6 +184,7 @@ import Github from "../components/icons/Github.astro";
             <h3 class="font-medium">Foodtok</h3>
             <a href="https://github.com/MrNiceRicee/foodtok" target="_blank">
               <Github class="w-6 h-6" />
+              <span class="sr-only">Foodtok on GitHub</span>
             </a>
           </div>
           <p class="text-xs ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400">
@@ -198,6 +212,7 @@ import Github from "../components/icons/Github.astro";
             </h3>
             <a href="https://github.com/MrNiceRicee/hive-codes" target="_blank">
               <Github class="w-6 h-6" />
+              <span class="sr-only">Hive Codes on GitHub</span>
             </a>
           </div>
           <p class="text-xs ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400">
@@ -229,6 +244,7 @@ import Github from "../components/icons/Github.astro";
               target="_blank"
             >
               <Github class="w-6 h-6" />
+              <span class="sr-only">Some Chat App on GitHub</span>
             </a>
           </div>
           <p class="text-xs ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400">
@@ -249,3 +265,13 @@ import Github from "../components/icons/Github.astro";
     </HeroSections>
   </main>
 </Layout>
+
+<style>
+  .details-no-disclosure > summary {
+    list-style: none;
+  }
+
+  .details-no-disclosure > summary::-webkit-details-marker {
+    display: none;
+  }
+</style>
