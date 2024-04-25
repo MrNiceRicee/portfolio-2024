@@ -5,7 +5,10 @@ import HeroSections from "../components/HeroSections.astro";
 import Github from "../components/icons/Github.astro";
 ---
 
-<Layout title="Josh's corner" description="Josh's personal site. Fullstack developer">
+<Layout
+  title="Josh's corner"
+  description="Josh's personal site. Fullstack developer"
+>
   <main class="my-12 sm:my-24 space-y-12">
     <header
       class="flex flex-col max-w-2xl mx-auto p-4 text-medium font-medium font-mono"
@@ -34,14 +37,31 @@ import Github from "../components/icons/Github.astro";
     <HeroSections title="Some experiences">
       <ul class="space-y-6 ml-8 pt-4 text-pretty">
         <li>
-          <p class="font-medium">
+          <p class="font-medium flex justify-between sm:flex-row flex-col">
             <span>
               Fullstack engineer, <span
                 class="font-normal text-zinc-500 dark:text-zinc-400"
                 >Kipsi Software</span
               >
             </span>
+            <span
+              class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
+            >
+              October 2023 - March 2024
+            </span>
           </p>
+          <!-- <ul
+            class="space-y-4 ml-8 pt-4 text-pretty text-sm list-disc text-zinc-500 dark:text-zinc-400"
+          >
+            <li>
+              Identified and improved unnecessary repetitive re-renders in core
+              hot routes
+            </li>
+            <li>
+              Implemented easy shareable views by enhancing search, sort and
+              table functions
+            </li>
+          </ul> -->
         </li>
         <li>
           <p class="font-medium flex justify-between sm:flex-row flex-col">
@@ -51,10 +71,32 @@ import Github from "../components/icons/Github.astro";
                 >SoftLedger</span
               >
             </span>
-            <span class="text-sm font-normal ml-8 sm:ml-0">
-              1st engineering hire
+            <span
+              class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
+            >
+              August 2021 - September 2023
             </span>
           </p>
+          <span class="text-sm font-normal ml-8 sm:ml-4">
+            1st engineering hire
+          </span>
+          <!-- <ul
+            class="space-y-4 ml-8 pt-4 text-pretty text-sm list-disc text-zinc-500 dark:text-zinc-400"
+          >
+            <li>
+              Rewrote the api-gateway node service to golang, improving
+              efficiency and reducing latency for all api requests. 10x smaller
+              containers & 3x more throughput
+            </li>
+            <li>Led the transition from Javascript to Typescript</li>
+            <li>
+              Built an MVP to integrate all of customer's cryptocurrency
+              transactions to the accounting general ledger
+            </li>
+            <li>
+              Improved frontend buildtimes by 10x, reduced build size by 5x
+            </li>
+          </ul> -->
         </li>
         <li>
           <p class="font-medium flex justify-between sm:flex-row flex-col">
@@ -64,10 +106,28 @@ import Github from "../components/icons/Github.astro";
                 >MNNML Health</span
               >
             </span>
-            <span class="text-sm font-normal ml-8 sm:ml-0">
-              1st engineering hire
+            <span
+              class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
+            >
+              August 2020 - March 2023
             </span>
           </p>
+          <span class="text-sm font-normal ml-8 sm:ml-4">
+            1st engineering hire
+          </span>
+          <!-- <ul
+            class="space-y-4 ml-8 pt-4 text-pretty text-sm list-disc text-zinc-500 dark:text-zinc-400"
+          >
+            <li>
+              Restructured monoservice architecture to microservices using AWS
+              EKS
+            </li>
+            <li>
+              Transitioned Javascript repo to Typescript. Used tRPC to enable
+              backend to frontend typesafety.
+            </li>
+            <li>Reduced backend code by 65%, reduced build times by 2x.</li>
+          </ul> -->
         </li>
       </ul>
     </HeroSections>
@@ -90,16 +150,14 @@ import Github from "../components/icons/Github.astro";
               <Github class="w-6 h-6" />
             </a>
           </div>
-          <p
-            class="text-xs font-normal ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400"
-          >
-            NextJs, React, Typescript, Tailwind, ShadCN, Zod, Vercel,
-            Drizzle, Planetscale, Postgres, Supabase, Cloudflare
+          <p class="text-xs ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400">
+            NextJs, React, Typescript, Tailwind, ShadCN, Zod, Vercel, Drizzle,
+            Planetscale, Postgres, Supabase, Cloudflare
           </p>
           <p
             class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
           >
-            When the craze with Barbie and Oppenheimer dropping on the same day.
+            With the craze with Barbie and Oppenheimer dropping on the same day.
             I wanted to make a funny joke about if it were like the US elections
             complete with an Electoral College map.
             <astro-blurrable data-status="idle">
@@ -110,16 +168,15 @@ import Github from "../components/icons/Github.astro";
         </li>
         <li class="flex gap-y-2 flex-col">
           <div class="flex justify-between">
-            <h3>Foodtok</h3>
+            <h3 class="font-medium">Foodtok</h3>
             <a href="https://github.com/MrNiceRicee/foodtok" target="_blank">
               <Github class="w-6 h-6" />
             </a>
           </div>
-          <p
-            class="text-xs font-normal ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400"
-          >
+          <p class="text-xs ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400">
             Firebase, React, Typescript, Tan-Query, Tan-Table, React-Router,
-            Axios, Tailwind, Recoil, Supabase, Vite, Docker, Express, Postgres, Google Cloud Platform
+            Axios, Tailwind, Recoil, Supabase, Vite, Docker, Express, Postgres,
+            Google Cloud Platform
           </p>
           <p
             class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
@@ -129,23 +186,21 @@ import Github from "../components/icons/Github.astro";
             and get the title and description. Then later, if I want to look for
             "shrimp", I'd get all the related videos
             <astro-blurrable data-status="idle">
-              I also made my own little schema validator, but zod is SOOO much
-              better
+              I also made my own little schema validator, but zod is <i>SOOO</i>
+              much better
             </astro-blurrable>
           </p>
         </li>
         <li class="flex gap-y-2 flex-col">
           <div class="flex justify-between">
-            <h3>
+            <h3 class="font-medium">
               Hive Codes <span class="text-xs font-normal">(exploratory)</span>
             </h3>
             <a href="https://github.com/MrNiceRicee/hive-codes" target="_blank">
               <Github class="w-6 h-6" />
             </a>
           </div>
-          <p
-            class="text-xs font-normal ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400"
-          >
+          <p class="text-xs ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400">
             NextJs (App Router), React, Typescript, Tailwind, Tan-Query,
             Drizzle, Open-Props, Zod, Postgres, Neon
           </p>
@@ -164,7 +219,7 @@ import Github from "../components/icons/Github.astro";
         </li>
         <li class="flex gap-y-2 flex-col">
           <div class="flex justify-between">
-            <h3>
+            <h3 class="font-medium">
               Some Chat App <span class="text-xs font-normal"
                 >(exploratory)</span
               >
@@ -176,19 +231,15 @@ import Github from "../components/icons/Github.astro";
               <Github class="w-6 h-6" />
             </a>
           </div>
-          <p
-            class="text-xs font-normal ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400"
-          >
+          <p class="text-xs ml-12 sm:ml-4 text-zinc-500 dark:text-zinc-400">
             NextJs, Turbo, React, Typescript, Tailwind, tRPC, jotai, Fastify,
             Upstash, Redis, Vercel, Railway
           </p>
-          <p
-            class="text-sm font-normal ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400"
-          >
+          <p class="text-sm ml-8 sm:ml-0 text-zinc-500 dark:text-zinc-400">
             I wanted to explore more about real-time, monorepos, and redis.
             Picked between server-side-events and websockets, went with the
             latter. It was cool running all the apps at once with turbo, and
-            also using Upstash (redis) as the persistence layer.
+            also using Upstash (redis) as the "database".
             <astro-blurrable data-status="idle">
               I know, using redis as the database is bad
             </astro-blurrable>
