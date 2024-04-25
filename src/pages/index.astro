@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import SillyLittleGuy from "../components/SillyLittleGuy";
 import HeroSections from "../components/HeroSections.astro";
 import Github from "../components/icons/Github.astro";
+import ChevronRight from "../components/icons/ChevronRight.astro";
 ---
 
 <Layout
@@ -37,8 +38,11 @@ import Github from "../components/icons/Github.astro";
     <HeroSections title="Some experiences">
       <ul class="space-y-6 ml-8 pt-4 text-pretty">
         <li>
-          <details class="details-no-disclosure">
-            <summary class="cursor-pointer">
+          <details class="details-no-disclosure group">
+            <summary class="cursor-pointer relative">
+              <ChevronRight
+                class="w-6 h-6 sm:w-5 sm:h-5 absolute top-0 -left-8 group-open:rotate-90 duration-200 ease-in-out transition-transform"
+              />
               <p class="font-medium flex justify-between sm:flex-row flex-col">
                 <span>
                   Fullstack engineer, <span
@@ -68,8 +72,11 @@ import Github from "../components/icons/Github.astro";
           </details>
         </li>
         <li>
-          <details class="details-no-disclosure">
-            <summary class="cursor-pointer">
+          <details class="details-no-disclosure group">
+            <summary class="cursor-pointer relative">
+              <ChevronRight
+                class="w-6 h-6 sm:w-5 sm:h-5 absolute top-0 -left-8 group-open:rotate-90 duration-200 ease-in-out transition-transform"
+              />
               <p class="font-medium flex justify-between sm:flex-row flex-col">
                 <span>
                   Fullstack engineer, <span
@@ -107,8 +114,11 @@ import Github from "../components/icons/Github.astro";
           </details>
         </li>
         <li>
-          <details class="details-no-disclosure">
-            <summary class="cursor-pointer">
+          <details class="details-no-disclosure group">
+            <summary class="cursor-pointer relative">
+              <ChevronRight
+                class="w-6 h-6 sm:w-5 sm:h-5 absolute top-0 -left-8 group-open:rotate-90 duration-200 ease-in-out transition-transform"
+              />
               <p class="font-medium flex justify-between sm:flex-row flex-col">
                 <span>
                   Fullstack engineer, <span
