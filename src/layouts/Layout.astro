@@ -15,6 +15,7 @@ const { title, description = "Josh's personal site" } = Astro.props;
 
 const optimizedBackground = await getImage({ src: noisy, format: "webp" });
 
+const serverTime = new Date();
 const noiseBackgroundUrl = `url(${optimizedBackground.src})`;
 const noiseBackgroundSvg = `url(${noisySvg.src})`;
 const darkColor = "#181615";
@@ -87,8 +88,8 @@ const lightColor = "#ebebec";
             >Gyuppii</a
           ><astro-blurrable data-status="idle"
             ><span class="text-zinc-500 dark:text-zinc-400"
-              >. I absolutely <bold class="font-bold">love</bold> the silly little guy, on mobile he goes to
-              the bottom right corner and just chills.
+              >. I absolutely <bold class="font-bold">love</bold> the silly little
+              guy, on mobile he goes to the bottom right corner and just chills.
             </span>
           </astro-blurrable>
         </p>
@@ -104,7 +105,7 @@ const lightColor = "#ebebec";
                   hour: "numeric",
                   minute: "numeric",
                   second: "numeric",
-                }).format(new Date())
+                }).format(serverTime)
               }</span
             >
           </p>
@@ -170,7 +171,6 @@ const lightColor = "#ebebec";
   }
 </style>
 
-<!-- <script define:vars={{ darkColor, lightColor }}> -->
 <script>
   const theme = () => {
     const prefersDark = window.matchMedia(
