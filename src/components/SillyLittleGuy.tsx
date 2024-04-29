@@ -1,9 +1,9 @@
 import {  useEffect, useReducer, useState } from "react";
 
-import sillyGuyEyesOpenMouthClosed from "../assets/silly-guy/eyes_open_mouth_closed.png";
-import sillyGuyEyesOpenMouthOpen from "../assets/silly-guy/eyes_open_mouth_open.png";
-import sillyGuyEyesClosedMouthClosed from "../assets/silly-guy/eyes_closed_mouth_closed.png";
-import sillyGuyEyesClosedMouthOpen from "../assets/silly-guy/eyes_closed_mouth_open.png";
+import sillyGuyEyesOpenMouthClosed from "../assets/silly-guy/eyes_open_mouth_closed.webp";
+import sillyGuyEyesOpenMouthOpen from "../assets/silly-guy/eyes_open_mouth_open.webp";
+import sillyGuyEyesClosedMouthClosed from "../assets/silly-guy/eyes_closed_mouth_closed.webp";
+import sillyGuyEyesClosedMouthOpen from "../assets/silly-guy/eyes_closed_mouth_open.webp";
 
 type BlinkingState = "closed" | "open";
 type TalkingState = "closed" | "open";
