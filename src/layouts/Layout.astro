@@ -1,8 +1,6 @@
 ---
 import "@fontsource-variable/inter";
 import "@fontsource-variable/jetbrains-mono";
-import { getImage } from "astro:assets";
-import noisy from "../assets/Grain.png";
 import noisySvg from "../assets/noise.svg";
 import GetClientTime from "../components/GetClientTime.astro";
 
@@ -13,10 +11,7 @@ interface Props {
 
 const { title, description = "Josh's personal site" } = Astro.props;
 
-const optimizedBackground = await getImage({ src: noisy, format: "webp" });
-
 const serverTime = new Date();
-const noiseBackgroundUrl = `url(${optimizedBackground.src})`;
 const noiseBackgroundSvg = `url(${noisySvg.src})`;
 const darkColor = "#181615";
 const lightColor = "#ebebec";
@@ -126,7 +121,6 @@ const lightColor = "#ebebec";
 <style
   is:global
   define:vars={{
-    noiseUrl: noiseBackgroundUrl,
     noiseSvg: noiseBackgroundSvg,
     darkColor,
     lightColor,
