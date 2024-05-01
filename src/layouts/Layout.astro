@@ -312,7 +312,7 @@ const lightColor = "#ebebec";
       const chanceForVerticalScratch = Math.random();
       let height = this.size;
       if (chanceForVerticalScratch > 0.99) {
-        height = this.size * (Math.random() * 30 + 5);
+        height = this.size * (Math.random() * 25 + 5);
       } else {
         height = this.size * (Math.random() * 2 + 1);
       }
@@ -340,7 +340,7 @@ const lightColor = "#ebebec";
   }
 
   // Populate initial particles
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 15; i++) {
     particles.push(
       new Particle(Math.random() * canvas.width, Math.random() * canvas.height)
     );
