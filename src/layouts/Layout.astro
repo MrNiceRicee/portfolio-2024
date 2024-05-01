@@ -4,7 +4,7 @@ import "@fontsource-variable/jetbrains-mono";
 import { getImage } from "astro:assets";
 import noisy from "../assets/Grain.png";
 import noisySvg from "../assets/noise.svg";
-import ClientTime from "../components/ClientTime";
+import GetClientTime from "../components/GetClientTime.astro";
 
 interface Props {
   title: string;
@@ -94,7 +94,7 @@ const lightColor = "#ebebec";
           </astro-blurrable>
         </p>
         <div class="space-y-2 text-sm pb-6">
-          <ClientTime client:visible />
+          <GetClientTime />
           <p>
             current server time <span class="tabular-nums"
               >{

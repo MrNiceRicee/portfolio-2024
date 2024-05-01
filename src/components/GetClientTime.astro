@@ -1,0 +1,41 @@
+---
+import { lastUpdated } from "../constants/lastUpdated";
+---
+
+<p>
+  <p>
+    last updated on <astro-last-updated
+      class="tabular-nums"
+      data-last-updated={lastUpdated}></astro-last-updated>
+  </p>
+</p>
+
+<script>
+  class LastUpdated extends HTMLElement {
+    private _lastUpdated: string;
+    constructor() {
+      super();
+      this._lastUpdated = this.getAttribute("data-last-updated") || "";
+      this.displayClientTime();
+    }
+
+    get lastUpdated(): string {
+      return this._lastUpdated;
+    }
+
+    displayClientTime() {
+      const lastUpdatedDate = Intl.DateTimeFormat(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+      }).format(new Date(this.lastUpdated));
+
+      this.innerHTML = lastUpdatedDate;
+    }
+  }
+
+  customElements.define("astro-last-updated", LastUpdated);
+</script>
