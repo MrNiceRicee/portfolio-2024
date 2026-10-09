@@ -1,4 +1,5 @@
 ---
+import Blurrable from "../components/Blurrable.astro";
 import Layout from "../layouts/Layout.astro";
 import SillyLittleGuy from "../components/SillyLittleGuy";
 import HeroSections from "../components/HeroSections.astro";
@@ -196,10 +197,10 @@ import ChevronRight from "../components/icons/ChevronRight.astro";
             With the craze with Barbie and Oppenheimer dropping on the same day.
             I wanted to make a funny joke about if it were like the US elections
             complete with an Electoral College map.
-            <astro-blurrable data-status="idle">
+            <Blurrable>
               Unfortunately, someone figured out how I would check unique votes,
               and staretd to cheat
-            </astro-blurrable>
+            </Blurrable>
           </p>
         </li>
         <li class="flex gap-y-2 flex-col">
@@ -222,10 +223,10 @@ import ChevronRight from "../components/icons/ChevronRight.astro";
             later. The project's goal was copy the video url, embed the video,
             and get the title and description. Then later, if I want to look for
             "shrimp", I'd get all the related videos
-            <astro-blurrable data-status="idle">
+            <Blurrable>
               I also made my own little schema validator, but zod is <i>SOOO</i>
               much better
-            </astro-blurrable>
+            </Blurrable>
           </p>
         </li>
         <li class="flex gap-y-2 flex-col">
@@ -247,10 +248,10 @@ import ChevronRight from "../components/icons/ChevronRight.astro";
             actions. I wanted to explore what React Server Components (RSC)
             could do. I also wanted to explore pg_trgm, to do some typo-tolerant
             text searches. Tested out Open Props to help with the styling.
-            <astro-blurrable data-status="idle">
+            <Blurrable>
               RSC is very <bold class="font-bold">cool</bold>, excited to see
               what more it can do in the future
-            </astro-blurrable>
+            </Blurrable>
           </p>
         </li>
         <li class="flex gap-y-2 flex-col">
@@ -273,9 +274,9 @@ import ChevronRight from "../components/icons/ChevronRight.astro";
             Picked between server-side-events and websockets, went with the
             latter. It was cool running all the apps at once with turbo, and
             also using Upstash (redis) as the "database".
-            <astro-blurrable data-status="idle">
+            <Blurrable>
               I know, using redis as the database is bad
-            </astro-blurrable>
+            </Blurrable>
           </p>
         </li>
       </ul>
