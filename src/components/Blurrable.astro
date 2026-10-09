@@ -1,0 +1,71 @@
+<astro-blurrable>
+  <button
+    type="button"
+    aria-pressed="false"
+    data-status="idle"
+    class="group/spoiler text-left cursor-pointer rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current"
+  >
+    <span
+      class="transition-[filter] duration-200 ease-in-out group-data-[status=idle]/spoiler:blur-sm motion-reduce:transition-none"
+    ><slot /></span>
+  </button>
+</astro-blurrable>
+
+<script>
+  import { registerEscapeDismissal } from "../scripts/escapeDismissal";
+
+  const activeSpoilers = new Set<HTMLButtonElement>();
+
+  function setRevealed(button: HTMLButtonElement, revealed: boolean) {
+    button.dataset.status = revealed ? "active" : "idle";
+    button.setAttribute("aria-pressed", String(revealed));
+    if (revealed) {
+      activeSpoilers.add(button);
+    } else {
+      activeSpoilers.delete(button);
+    }
+  }
+
+  class Blurrable extends HTMLElement {
+    private initialized = false;
+
+    connectedCallback() {
+      if (this.initialized) return;
+      const button = this.querySelector("button");
+      if (!button) return;
+      this.initialized = true;
+
+      button.addEventListener("click", () => {
+        setRevealed(button, button.dataset.status !== "active");
+      });
+      // touch users reveal by tapping instead of hover
+      if (!("ontouchstart" in window)) {
+        button.addEventListener("mouseenter", () => setRevealed(button, true));
+      }
+    }
+  }
+
+  customElements.define("astro-blurrable", Blurrable);
+
+  registerEscapeDismissal(
+    window,
+    () => activeSpoilers.forEach((button) => setRevealed(button, false)),
+    (event) => {
+      // Native overlays and editing controls have their own Escape behavior.
+      if (document.querySelector("dialog:modal, [popover]:popover-open")) return true;
+      return event.composedPath().some((node) =>
+        node instanceof HTMLElement && (
+          node.isContentEditable || node.matches("input, textarea, select")
+        )
+      );
+    },
+  );
+
+  document.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+    if (event.target.closest("astro-blurrable")) return;
+    activeSpoilers.forEach((button) => {
+      setRevealed(button, false);
+    });
+  });
+</script>
