@@ -5,6 +5,9 @@ import SillyLittleGuy from "../components/SillyLittleGuy";
 import HeroSections from "../components/HeroSections.astro";
 import Github from "../components/icons/Github.astro";
 import ChevronRight from "../components/icons/ChevronRight.astro";
+import ProposalArtwork from "../components/ProposalArtwork.astro";
+import { getProposalConfig } from "../scripts/proposalConfig";
+const proposal = getProposalConfig(Astro.url);
 ---
 
 <Layout
@@ -15,7 +18,7 @@ import ChevronRight from "../components/icons/ChevronRight.astro";
     <header
       class="flex flex-col max-w-2xl mx-auto p-4 text-medium font-medium font-mono"
     >
-      <SillyLittleGuy client:load />
+      {proposal.enabled ? <ProposalArtwork /> : <SillyLittleGuy client:load />}
       <div
         class="fixed w-full h-[7px] bottom-[-3px] left-0 zinc dark:bg-zinc-900 border-t dark:border-stone-800 xs:hidden"
       >
