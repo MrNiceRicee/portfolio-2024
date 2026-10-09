@@ -39,7 +39,7 @@ const lightColor = "#ebebec";
     <title>{title}</title>
   </head>
   <body
-    class="min-w-[100dvw] min-h-[100dvh] bg-stone-50 dark:bg-stone-950 dark:text-zinc-50"
+    class="min-h-[100dvh] bg-stone-50 dark:bg-stone-950 dark:text-zinc-50"
     data-darkcolor={darkColor}
     data-lightcolor={lightColor}
   >
@@ -152,6 +152,61 @@ const lightColor = "#ebebec";
 
     to {
       transform: translateY(1000px);
+    }
+  }
+
+  :root {
+    --focus-ink: #665346;
+    --focus-surface: #e8dfcc;
+  }
+
+  html.dark {
+    --focus-ink: #d8c8aa;
+    --focus-surface: #302a21;
+  }
+
+  /* a warm wash behind the immediate ink edge */
+  :where(a[href], button, summary, input, select, textarea):focus-visible {
+    /* keep focused content readable above the fixed character */
+    position: relative;
+    z-index: 2;
+    background-color: var(--focus-surface);
+    box-shadow: 0 0 0 3px var(--focus-surface);
+    outline: 2px solid var(--focus-ink);
+    outline-offset: 2px;
+    border-radius: 2px;
+    transition: none;
+  }
+
+  summary:focus-visible {
+    outline-offset: 4px;
+  }
+
+  astro-blurrable button {
+    margin-block: 4px;
+  }
+
+  a[href]:focus-visible {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+
+  summary:focus-visible > svg,
+  astro-blurrable button:focus-visible > span {
+    transition: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .grainy-light, html.dark .grainy-light {
+      animation: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    :where(a[href], button, summary, input, select, textarea):focus-visible {
+      box-shadow: none;
+      outline-color: Highlight;
     }
   }
 
