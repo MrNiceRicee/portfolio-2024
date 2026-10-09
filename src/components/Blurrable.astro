@@ -12,6 +12,8 @@
 </astro-blurrable>
 
 <script>
+  import { registerEscapeDismissal } from "../scripts/escapeDismissal";
+
   const activeSpoilers = new Set<HTMLButtonElement>();
 
   function setRevealed(button: HTMLButtonElement, revealed: boolean) {
@@ -44,6 +46,20 @@
   }
 
   customElements.define("astro-blurrable", Blurrable);
+
+  registerEscapeDismissal(
+    window,
+    () => activeSpoilers.forEach((button) => setRevealed(button, false)),
+    (event) => {
+      // Native overlays and editing controls have their own Escape behavior.
+      if (document.querySelector("dialog:modal, [popover]:popover-open")) return true;
+      return event.composedPath().some((node) =>
+        node instanceof HTMLElement && (
+          node.isContentEditable || node.matches("input, textarea, select")
+        )
+      );
+    },
+  );
 
   document.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;
