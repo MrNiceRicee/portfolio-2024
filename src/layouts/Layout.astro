@@ -155,6 +155,53 @@ const lightColor = "#ebebec";
     }
   }
 
+  :root {
+    --focus-ink: #292524;
+    --focus-paper: #f5f0e4;
+  }
+
+  html.dark {
+    --focus-ink: #f5f0e4;
+    --focus-paper: #292524;
+  }
+
+  /* Registration marks: instant ink outline + offset print impression. */
+  :where(a[href], button, summary, input, select, textarea):focus-visible {
+    outline: 2px solid var(--focus-ink);
+    outline-offset: 4px;
+    border-radius: 1px;
+    box-shadow: 3px 3px 0 5px var(--focus-paper),
+      4px 4px 0 5px var(--focus-ink);
+  }
+
+  a[href]:focus-visible {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+
+  summary:focus-visible {
+    background-color: var(--focus-paper);
+    color: var(--focus-ink);
+  }
+
+  summary:focus-visible > svg {
+    transition: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .grainy-light, html.dark .grainy-light {
+      animation: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    :where(a[href], button, summary, input, select, textarea):focus-visible {
+      outline-color: Highlight;
+      box-shadow: none;
+    }
+  }
+
   body {
     font-family: "Inter Variable", sans-serif;
   }
