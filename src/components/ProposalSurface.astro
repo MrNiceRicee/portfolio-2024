@@ -76,29 +76,9 @@ import grain from "../assets/noise.svg";
   .proposal-film { position: fixed; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
   html[data-proposal] .proposal-grain { animation-play-state: paused; }
   html[data-proposal][data-film-motion="running"] .proposal-grain { animation-play-state: running; }
-  html[data-film="weave"] .proposal-film { inset: -3px; }
-  html[data-film="weave"] .proposal-film::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    --film-edge: #51433730;
-    background: linear-gradient(to right, var(--film-edge), transparent 28px,
-      transparent calc(100% - 28px), var(--film-edge));
-    /* a fine registration edge makes the stepped exposure shift legible */
-    box-shadow: inset 6px 0 var(--film-edge), inset -6px 0 var(--film-edge);
-  }
-  html.dark[data-film="weave"] .proposal-film::before { --film-edge: #e8dfcc26; }
-  html[data-film="weave"] :is(.proposal-film, .proposal-particles) {
-    animation: proposal-weave 1.4s steps(1, end) infinite paused;
-  }
-  html[data-film="weave"][data-film-motion="running"] :is(.proposal-film, .proposal-particles) { animation-play-state: running; }
-  @keyframes proposal-weave {
-    0%, 100% { transform: translate(0, 0); }
-    20% { transform: translate(2px, -2px); }
-    45% { transform: translate(-2px, 0); }
-    70% { transform: translate(0, 2px); }
-  }
+  /* the static SVG remains available when fresh grain cannot run */
+  html:is([data-film="quiet"], [data-film="used"]) .proposal-grain { animation: none; }
+  html:is([data-film="quiet"], [data-film="used"])[data-film-motion="running"][data-reel-grain="ready"] .proposal-grain { visibility: hidden; }
   .proposal-particles { width: 100%; height: 100%; }
   .proposal-pause {
     position: relative;
@@ -155,16 +135,25 @@ import grain from "../assets/noise.svg";
 </style>
 
 <script>
-  import { initializeProposalParticles } from "../scripts/proposalParticles";
-  import { initializeProposalFilm } from "../scripts/proposalFilm";
-  // heavy shader code is fetched only in the explicit review mode
+  // the ordinary homepage never fetches the proposal runtime
   if (document.documentElement.hasAttribute("data-proposal")) {
-    initializeProposalParticles();
-    initializeProposalFilm();
-    import("../scripts/proposalShaders").then(({ initializeProposalShaders }) => {
-      return initializeProposalShaders();
+    const lifetime = new AbortController();
+    window.addEventListener("pagehide", (event) => {
+      if (!event.persisted) lifetime.abort();
+    }, { signal: lifetime.signal });
+    import("../scripts/proposalRuntime").then(({ initializeProposalRuntime }) => {
+      if (lifetime.signal.aborted) return;
+      return initializeProposalRuntime(lifetime.signal);
     }).catch(() => {
-      document.documentElement.dataset.shaderStatus = "fallback";
+      if (lifetime.signal.aborted) return;
+      const root = document.documentElement;
+      root.dataset.shaderStatus = "fallback";
+      // entry-load failure has no film controller to publish the static state
+      if (root.dataset.filmMotionReason === undefined) {
+        root.dataset.filmMotion = "paused";
+        root.dataset.filmMotionReason = "fallback";
+        document.dispatchEvent(new Event("proposalfilmchange"));
+      }
       document.dispatchEvent(new Event("proposalshaderchange"));
     });
   }

@@ -4,9 +4,8 @@ export const paperVariants = {
 } as const;
 export const filmVariants = {
   original: { label: "Original film · baseline", description: "Fifteen random dust/scratch particles; original grain strength and cadence.", particles: 15 },
-  hairlines: { label: "Fine hairlines", description: "The same grain and dust, with one or two fine scratches that linger, then leave a quiet gap. These replace the original random long scratches.", particles: 15 },
-  aged: { label: "Intermittent aged film", description: "The same grain and dust, with brief clusters of one to three stronger, longer scratches separated by quiet gaps. These replace the original random long scratches.", particles: 15 },
-  weave: { label: "Gate weave + sparse dust", description: "A stepped shift of up to two pixels in the film layer, with restrained edge exposure shading and six dust particles. Words, paper and artwork stay still.", particles: 6 },
+  quiet: { label: "Quiet print", description: "Fresh fine grain with sparse, brief flecks and rare tiny fragmented blemishes.", particles: 9 },
+  used: { label: "Used reel", description: "Fresh grain with more frequent irregular flecks and occasional short fragmented blemishes.", particles: 15 },
 } as const;
 export type PaperVariant = keyof typeof paperVariants;
 export type FilmVariant = keyof typeof filmVariants;
@@ -39,6 +38,8 @@ const filmMotionMessages = {
   "forced-colors": "Film off · Forced colors is enabled; film effects are hidden.",
   "reduced-motion": "Film static · Reduced motion is enabled; grain stays still and particles are hidden.",
   unsupported: "Film static · Visibility detection is unavailable; moving effects are off.",
+  "renderer-unavailable": "Film static · Film renderer unavailable; grain stays still and moving effects are off.",
+  "grain-only": "Film running · Original grain is active; the particle renderer is unavailable.",
   loading: "Film waiting · Preparing the paper surface.",
   fallback: "Film static · Paper shader unavailable; using the static surface fallback.",
   "user-paused": "Film paused · Use Resume film inside the preview to restart the effects.",

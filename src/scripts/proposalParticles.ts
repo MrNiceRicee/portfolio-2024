@@ -1,3 +1,4 @@
+import { FilmReel } from "./proposalReel";
 import { filmVariants, getFilmVariant, type FilmVariant } from "./proposalConfig";
 /** Original dust/scratch ranges, with lifetime expressed in milliseconds at 60 Hz. */
 export class FilmParticle {
@@ -25,53 +26,20 @@ export class FilmParticle {
   }
 }
 
-export interface Scratch {
-  x: number; y: number; width: number; height: number; life: number; opacity: number;
-}
-/** Elapsed-time transient lines share the dust renderer's one animation loop. */
-export class FilmScratches {
-  private activeLines: Scratch[] = [];
-  get lines(): readonly Readonly<Scratch>[] { return this.activeLines; }
-  private wait = 0;
-  constructor(private profile: "hairlines" | "aged", private random = Math.random) {}
-  reset() { this.activeLines.length = 0; this.wait = 0; }
-  advance(elapsed: number, width: number, height: number) {
-    for (let i = this.activeLines.length - 1; i >= 0; i--) {
-      const line = this.activeLines[i];
-      if (!line) continue;
-      line.life -= elapsed;
-      if (line.life <= 0) this.activeLines.splice(i, 1);
-    }
-    this.wait -= elapsed;
-    if (this.wait > 0 || this.activeLines.length > 0 || width <= 0 || height <= 0) return;
-    const aged = this.profile === "aged";
-    const count = 1 + Math.floor(this.random() * (aged ? 3 : 2));
-    const clusterX = this.random() * Math.max(0, width - (count - 1) * 5 - 1.6);
-    for (let i = 0; i < count; i++) {
-      const lineHeight = Math.min(height, aged ? 240 + this.random() * 400 : 120 + this.random() * 180);
-      const lineWidth = Math.min(width, aged ? 1 + this.random() * 0.6 : 1);
-      this.activeLines.push({
-        x: Math.max(0, Math.min(width - lineWidth, aged ? clusterX + i * 5 : this.random() * width)),
-        y: this.random() * (height - lineHeight), width: lineWidth, height: lineHeight,
-        life: aged ? 220 + this.random() * 140 : 700 + this.random() * 500,
-        opacity: aged ? 0.85 : 0.65,
-      });
-    }
-    // A late frame emits at most one bounded group; no catch-up bursts.
-    const longestLife = Math.max(...this.activeLines.map((line) => line.life));
-    this.wait = longestLife + (aged ? 700 + this.random() * 900 : 600 + this.random() * 900);
-  }
-}
-
-export function initializeProposalParticles() {
+export function initializeProposalParticles(): boolean {
   const canvas = document.querySelector<HTMLCanvasElement>("[data-proposal-particles]");
-  if (!canvas || document.documentElement.hasAttribute("data-fallback")) return;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
+  if (!canvas || document.documentElement.hasAttribute("data-fallback")) return false;
+  let ctx: CanvasRenderingContext2D | null;
+  try {
+    ctx = canvas.getContext("2d");
+  } catch {
+    return false;
+  }
+  if (!ctx) return false;
   const lifecycle = new AbortController();
   const profile: FilmVariant = getFilmVariant(document.documentElement.dataset.film);
   const particles = Array.from({ length: filmVariants[profile].particles }, () => new FilmParticle());
-  const scratches = profile === "hairlines" || profile === "aged" ? new FilmScratches(profile) : undefined;
+  const reel = profile === "original" ? undefined : new FilmReel(profile, ctx);
   const interval = 1000 / 60;
   let frame: number | undefined;
   let previous: number | undefined;
@@ -83,14 +51,14 @@ export function initializeProposalParticles() {
     if (canvas.height !== window.innerHeight) canvas.height = window.innerHeight;
     if (unchanged) ctx.clearRect(0, 0, canvas.width, canvas.height);
     particles.forEach((particle) => particle.respawn(canvas.width, canvas.height));
-    scratches?.reset();
+    reel?.reset();
   };
   const stop = () => {
     if (frame === undefined) return;
     cancelAnimationFrame(frame);
     frame = undefined;
     previous = undefined;
-    scratches?.reset();
+    reel?.reset();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
   const animate = (now: number) => {
@@ -101,19 +69,19 @@ export function initializeProposalParticles() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const dark = document.documentElement.classList.contains("dark");
       const rgb = dark ? "255, 255, 255" : "0, 0, 0";
+      if (reel) {
+        reel.advance(elapsed, canvas.width, canvas.height);
+        reel.draw(canvas.width, canvas.height, dark);
+        const grainState = reel.hasGrain ? "ready" : "fallback";
+        if (document.documentElement.dataset.reelGrain !== grainState) document.documentElement.dataset.reelGrain = grainState;
+      }
       particles.forEach((particle) => {
         // No catch-up burst after a dropped frame or a suspended tab.
         particle.advance(elapsed, canvas.width, canvas.height);
         ctx.fillStyle = `rgba(${rgb}, ${particle.opacity})`;
         ctx.fillRect(particle.x, particle.y, particle.size, particle.drawHeight(profile === "original"));
       });
-      scratches?.advance(elapsed, canvas.width, canvas.height);
-      const lines = scratches?.lines;
-      const firstLine = lines?.[0];
-      if (lines && firstLine) {
-        ctx.fillStyle = `rgba(${rgb}, ${firstLine.opacity})`;
-        lines.forEach((line) => ctx.fillRect(line.x, line.y, line.width, line.height));
-      }
+
     }
     frame = requestAnimationFrame(animate);
   };
@@ -131,4 +99,5 @@ export function initializeProposalParticles() {
   window.addEventListener("pageshow", update, options);
   resize();
   update();
+  return true;
 }

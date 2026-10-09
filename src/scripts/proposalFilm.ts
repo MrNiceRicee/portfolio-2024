@@ -1,10 +1,13 @@
+import { getFilmVariant } from "./proposalConfig";
+
 /** One eligibility state gates both CSS grain and the particle canvas. */
-export function initializeProposalFilm() {
+export function initializeProposalFilm(rendererAvailable: boolean) {
   const root = document.documentElement;
   const host = document.querySelector<HTMLElement>("[data-proposal-film]");
   const button = document.querySelector<HTMLButtonElement>("[data-pause-film]");
   if (!host || !button || root.hasAttribute("data-fallback")) return;
 
+  const rendererRequired = getFilmVariant(root.dataset.film) !== "original";
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
   const forcedColors = matchMedia("(forced-colors: active)");
   const lifecycle = new AbortController();
@@ -14,15 +17,16 @@ export function initializeProposalFilm() {
 
   const update = () => {
     const available = observer !== undefined && root.dataset.shaderStatus === "ready"
-      && !reducedMotion.matches && !forcedColors.matches;
+      && !reducedMotion.matches && !forcedColors.matches && (!rendererRequired || rendererAvailable);
     const running = available && visible && !paused && !suspended && !document.hidden;
     const motion = running ? "running" : "paused";
-    let reason = "running";
+    let reason = rendererAvailable ? "running" : "grain-only";
     if (forcedColors.matches) reason = "forced-colors";
     else if (reducedMotion.matches) reason = "reduced-motion";
     else if (observer === undefined) reason = "unsupported";
     else if (root.dataset.shaderStatus === "fallback") reason = "fallback";
     else if (root.dataset.shaderStatus !== "ready") reason = "loading";
+    else if (rendererRequired && !rendererAvailable) reason = "renderer-unavailable";
     else if (paused) reason = "user-paused";
     else if (suspended || document.hidden) reason = "hidden";
     else if (!visible) reason = "offscreen";

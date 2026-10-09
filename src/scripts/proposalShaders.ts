@@ -5,14 +5,15 @@ import {
 } from "@paper-design/shaders";
 
 /** one static paper mount; the separate CSS film never changes shader time */
-export async function initializeProposalShaders() {
+export async function initializeProposalShaders(signal: AbortSignal) {
   const root = document.documentElement;
   const host = document.querySelector<HTMLElement>("[data-proposal-paper]");
-  if (!host || root.hasAttribute("data-fallback")) return;
+  if (signal.aborted || !host || root.hasAttribute("data-fallback")) return;
   let paper: ShaderMount | undefined;
   let cancelled = false;
 
   function setStatus(status: "loading" | "ready" | "fallback") {
+    if (cancelled || signal.aborted) return;
     root.dataset.shaderStatus = status;
     document.dispatchEvent(new Event("proposalshaderchange"));
   }
@@ -24,18 +25,22 @@ export async function initializeProposalShaders() {
     setStatus("fallback");
   }
 
+  signal.addEventListener("abort", () => {
+    cancelled = true;
+    fallback();
+  }, { once: true });
   window.addEventListener("pagehide", (event) => {
     if (event.persisted) return;
     cancelled = true;
     fallback();
-  });
+  }, { signal });
   setStatus("loading");
 
   try {
     const noise = getShaderNoiseTexture();
     if (!noise) throw new Error("Paper noise texture unavailable");
     await noise.decode();
-    if (cancelled) return;
+    if (cancelled || signal.aborted) return;
     const dark = root.classList.contains("dark");
     const surface = paperVariants[getPaperVariant(root.dataset.surface)];
     const paperColor = getShaderColorFromString(dark ? "#191713" : "#f4f0e6");
@@ -62,7 +67,7 @@ export async function initializeProposalShaders() {
     paper.canvasElement.addEventListener("webglcontextlost", fallback, { once: true });
     // let the vendor resize observer establish the viewport resolution first
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    if (cancelled || !paper) return;
+    if (cancelled || signal.aborted || !paper) return;
     paper.setFrame(0);
     // the vendor can leave a mount after a failed program or texture upload
     const gl = paper.canvasElement.getContext("webgl2");
