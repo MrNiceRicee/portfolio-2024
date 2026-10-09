@@ -157,23 +157,25 @@ const lightColor = "#ebebec";
 
   :root {
     --focus-ink: #665346;
-    --focus-surface: #fafaf9;
+    --focus-surface: #e8dfcc;
   }
 
   html.dark {
     --focus-ink: #d8c8aa;
-    --focus-surface: #0c0a09;
+    --focus-surface: #302a21;
   }
 
-  /* one clean ink edge, with room for the text to breathe */
+  /* a warm wash behind the immediate ink edge */
   :where(a[href], button, summary, input, select, textarea):focus-visible {
     /* keep focused content readable above the fixed character */
     position: relative;
     z-index: 2;
     background-color: var(--focus-surface);
+    box-shadow: 0 0 0 3px var(--focus-surface);
     outline: 2px solid var(--focus-ink);
     outline-offset: 2px;
     border-radius: 2px;
+    transition: none;
   }
 
   summary:focus-visible {
@@ -203,6 +205,7 @@ const lightColor = "#ebebec";
 
   @media (forced-colors: active) {
     :where(a[href], button, summary, input, select, textarea):focus-visible {
+      box-shadow: none;
       outline-color: Highlight;
     }
   }
