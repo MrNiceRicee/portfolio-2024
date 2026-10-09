@@ -39,7 +39,7 @@ const lightColor = "#ebebec";
     <title>{title}</title>
   </head>
   <body
-    class="min-w-[100dvw] min-h-[100dvh] bg-stone-50 dark:bg-stone-950 dark:text-zinc-50"
+    class="min-h-[100dvh] bg-stone-50 dark:bg-stone-950 dark:text-zinc-50"
     data-darkcolor={darkColor}
     data-lightcolor={lightColor}
   >
@@ -156,22 +156,32 @@ const lightColor = "#ebebec";
   }
 
   :root {
-    --focus-ink: #292524;
-    --focus-paper: #f5f0e4;
+    --focus-ink: #665346;
+    --focus-surface: #fafaf9;
   }
 
   html.dark {
-    --focus-ink: #f5f0e4;
-    --focus-paper: #292524;
+    --focus-ink: #d8c8aa;
+    --focus-surface: #0c0a09;
   }
 
-  /* Registration marks: instant ink outline + offset print impression. */
+  /* one clean ink edge, with room for the text to breathe */
   :where(a[href], button, summary, input, select, textarea):focus-visible {
+    /* keep focused content readable above the fixed character */
+    position: relative;
+    z-index: 2;
+    background-color: var(--focus-surface);
     outline: 2px solid var(--focus-ink);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  summary:focus-visible {
     outline-offset: 4px;
-    border-radius: 1px;
-    box-shadow: 3px 3px 0 5px var(--focus-paper),
-      4px 4px 0 5px var(--focus-ink);
+  }
+
+  astro-blurrable button {
+    margin-block: 4px;
   }
 
   a[href]:focus-visible {
@@ -180,12 +190,8 @@ const lightColor = "#ebebec";
     text-underline-offset: 0.2em;
   }
 
-  summary:focus-visible {
-    background-color: var(--focus-paper);
-    color: var(--focus-ink);
-  }
-
-  summary:focus-visible > svg {
+  summary:focus-visible > svg,
+  astro-blurrable button:focus-visible > span {
     transition: none;
   }
 
@@ -198,7 +204,6 @@ const lightColor = "#ebebec";
   @media (forced-colors: active) {
     :where(a[href], button, summary, input, select, textarea):focus-visible {
       outline-color: Highlight;
-      box-shadow: none;
     }
   }
 
