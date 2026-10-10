@@ -8,8 +8,8 @@ https://github.com/lucide-icons/lucide/tree/70562c1ee1c4fdcf736fe97bc893fb851192
 Light: sun.svg, with reversed ray path directions and a local stroke-dash reveal.
 Its fixed center is retained; short idle rays extend to the normal Sun geometry.
 Dark, Cloud clears: moon.svg, with an opaque, ink-filled cloud moving through
-a cloud-only SVG clip, adapted from cloud.svg (half-size path geometry positioned
-over the moon):
+a cloud-only SVG clip, adapted from cloud.svg (scaled path geometry positioned
+across the moon as cloud cover):
 https://github.com/lucide-icons/lucide/blob/70562c1ee1c4fdcf736fe97bc893fb8511927934/icons/cloud.svg
 Dark, Crescent to full: an adapted circular crescent construction with a moving
 SVG mask and clipped inner outline. It reveals a full circle without moving or

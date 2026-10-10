@@ -25,7 +25,7 @@ const rays = ["M12 4V2", "M12 20v2", "m6.34 6.34-1.41-1.41", "m17.66 17.66 1.41 
       <defs><clipPath id={cloudClip}><rect width="24" height="24" /></clipPath></defs>
       <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />
       <g clip-path={`url(#${cloudClip})`}>
-        <path data-motion-part="cloud" d="M17.75 19.5H13.5a3.5 3.5 0 1 1 3.355-4.5h.895a2.25 2.25 0 1 1 0 4.5Z" fill="currentColor" stroke-width="1.5" />
+        <path data-motion-part="cloud" d="M17.4 20H10.6a5.6 5.6 0 1 1 5.368-7.2h1.432a3.6 3.6 0 1 1 0 7.2Z" fill="currentColor" stroke-width="1.5" />
       </g>
     </>}
     {kind === "dark" && moonVariant === "full" && <>
@@ -57,7 +57,7 @@ const rays = ["M12 4V2", "M12 20v2", "m6.34 6.34-1.41-1.41", "m17.66 17.66 1.41 
   [data-motion-part="sun-ray"] { stroke-dasharray: 1 1; stroke-dashoffset: 0.5; transition-property: stroke-dashoffset; }
   [data-state="active"] [data-motion-part="sun-ray"] { stroke-dashoffset: 0; }
   [data-motion-part="cloud"] { transform: translateX(0); transition-property: transform; }
-  [data-state="active"] [data-motion-part="cloud"] { transform: translateX(15px); }
+  [data-state="active"] [data-motion-part="cloud"] { transform: translateX(20px); }
   [data-motion-part="moon-cutout"] { transform: translate(0, 0); transition-property: transform; }
   [data-state="active"] [data-motion-part="moon-cutout"] { transform: translate(12px, -12px); }
   [data-motion-part="screen"] { fill: #292524; transition-property: fill; }
