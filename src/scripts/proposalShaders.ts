@@ -13,6 +13,14 @@ export async function initializeProposalShaders(signal: AbortSignal) {
   let themeObserver: MutationObserver | undefined;
   let cancelled = false;
 
+  function themeColors(dark: boolean) {
+    const color = getShaderColorFromString(dark ? "#0c0a09" : "#fafaf9");
+    return {
+      u_colorBack: color, u_colorPaper: color,
+      u_colorShadow: getShaderColorFromString(dark ? "#40382d" : "#c5bcae"),
+    };
+  }
+
   function setStatus(status: "loading" | "ready" | "fallback") {
     if (cancelled || signal.aborted) return;
     root.dataset.shaderStatus = status;
@@ -45,15 +53,13 @@ export async function initializeProposalShaders(signal: AbortSignal) {
     if (cancelled || signal.aborted) return;
     let dark = root.classList.contains("dark");
     const surface = paperVariants[getPaperVariant(root.dataset.surface)];
-    const paperColor = getShaderColorFromString(dark ? "#191713" : "#f4f0e6");
     const uniforms = {
       u_fit: ShaderFitOptions.cover, u_scale: 1, u_rotation: 0,
       u_originX: 0.5, u_originY: 0.5, u_offsetX: 0, u_offsetY: 0,
       u_worldWidth: 0, u_worldHeight: 0,
       // standalone paper still uses image UVs; no source image sets this automatically
       u_image: undefined, u_imageAspectRatio: 1, u_isImage: false, u_clip: false,
-      u_colorBack: paperColor, u_colorPaper: paperColor,
-      u_colorShadow: getShaderColorFromString(dark ? "#40382d" : "#c5bcae"),
+      ...themeColors(dark),
       u_blending: 0, u_distortion: 0, u_angle: 300, u_seed: 4,
       u_roughness: 0.04, u_roughnessSize: 0.3, u_roughnessRows: 0,
       u_fiber: 0.08, u_fiberSize: 0.35,
@@ -69,12 +75,8 @@ export async function initializeProposalShaders(signal: AbortSignal) {
       const nextDark = root.classList.contains("dark");
       if (cancelled || signal.aborted || !paper || nextDark === dark) return;
       dark = nextDark;
-      const color = getShaderColorFromString(dark ? "#191713" : "#f4f0e6");
       try {
-        paper.setUniforms({
-          u_colorBack: color, u_colorPaper: color,
-          u_colorShadow: getShaderColorFromString(dark ? "#40382d" : "#c5bcae"),
-        });
+        paper.setUniforms(themeColors(dark));
       } catch {
         fallback();
       }

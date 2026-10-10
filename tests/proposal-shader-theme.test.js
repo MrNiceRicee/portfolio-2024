@@ -18,7 +18,7 @@ test("mounted paper follows theme changes without animating and releases its obs
     class ShaderMount {
       constructor(host, shader, uniforms, context, speed) {
         assert.equal(speed, 0);
-        assert.equal(uniforms.u_colorPaper, "#f4f0e6");
+        assert.equal(uniforms.u_colorPaper, "#fafaf9");
         this.textures = new Map([["u_noiseTexture", {}]]);
         this.canvasElement = Object.assign(new EventTarget(), { setAttribute() {}, getContext: () => ({ CURRENT_PROGRAM: 1, NO_ERROR: 0, getParameter: () => ({}), getError: () => 0 }) });
       }
@@ -34,9 +34,9 @@ test("mounted paper follows theme changes without animating and releases its obs
     await initialize(controller.signal);
     callback(); assert.equal(updates.length, 0);
     dark = true; callback();
-    assert.deepEqual(updates[0], { u_colorBack: "#191713", u_colorPaper: "#191713", u_colorShadow: "#40382d" });
+    assert.deepEqual(updates[0], { u_colorBack: "#0c0a09", u_colorPaper: "#0c0a09", u_colorShadow: "#40382d" });
     callback(); assert.equal(updates.length, 1);
-    dark = false; callback(); assert.equal(updates[1].u_colorPaper, "#f4f0e6");
+    dark = false; callback(); assert.equal(updates[1].u_colorPaper, "#fafaf9");
     assert.equal(staticFrames, 1);
     window.dispatchEvent(Object.assign(new Event("pagehide"), { persisted: true }));
     assert.equal(disconnects, 0);

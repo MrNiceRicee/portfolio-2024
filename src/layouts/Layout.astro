@@ -34,10 +34,15 @@ const proposal = getProposalConfig(Astro.url);
     <meta charset="UTF-8" />
     {proposal.enabled && <PortfolioTypography />}
     <script is:inline>
-      if (document.documentElement.hasAttribute("data-proposal")) {
-        const explicitTheme = document.documentElement.dataset.proposalTheme;
-        document.documentElement.classList.toggle("dark", explicitTheme ? explicitTheme === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches);
-      }
+      const root = document.documentElement;
+      const explicitTheme = root.dataset.proposalTheme;
+      let savedTheme;
+      try { savedTheme = window.localStorage.getItem("portfolio-theme"); } catch {}
+      const preference = explicitTheme === "light" || explicitTheme === "dark" ? explicitTheme
+        : savedTheme === "light" || savedTheme === "dark" || savedTheme === "system" ? savedTheme : "system";
+      root.dataset.themePreference = preference;
+      root.classList.toggle("dark", preference === "dark"
+        || (preference === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches));
     </script>
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width" />
@@ -130,8 +135,9 @@ const proposal = getProposalConfig(Astro.url);
           </p>
         </div>
       </section>
+      {proposal.enabled && <ProposalSurface />}
     </footer>
-    {proposal.enabled ? <ProposalSurface /> : <div class="grainy-light dark:grainy-dark z-50"></div>}
+    {!proposal.enabled && <div class="grainy-light dark:grainy-dark z-50"></div>}
     <!-- canvas  -->
     {!proposal.enabled && <canvas
       id="canvas"
@@ -243,36 +249,8 @@ const proposal = getProposalConfig(Astro.url);
 </style>
 
 <script>
-  const theme = () => {
-    const proposalTheme = document.documentElement.dataset.proposalTheme;
-    const prefersDark = proposalTheme ? proposalTheme === "dark" : window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    const body = document.querySelector("body");
-    const darkColor = body?.getAttribute("data-darkcolor");
-    const lightColor = body?.getAttribute("data-lightcolor");
-
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    const metaAppleStatusBar = document.querySelector(
-      'meta[name="apple-mobile-web-app-status-bar-style"]'
-    );
-
-    if (prefersDark) {
-      document.documentElement.classList.add("dark");
-      metaThemeColor?.setAttribute("content", darkColor ?? "#181615");
-      metaAppleStatusBar?.setAttribute("content", "black-translucent");
-      return;
-    }
-    document.documentElement.classList.remove("dark");
-    metaThemeColor?.setAttribute("content", lightColor ?? "");
-    metaAppleStatusBar?.setAttribute("content", "default");
-  };
-
-  theme();
-
-  window
-    .matchMedia("(prefers-color-scheme: dark)")
-    .addEventListener("change", theme);
+  import { initializePortfolioTheme } from "../scripts/portfolioTheme";
+  initializePortfolioTheme();
 </script>
 
 
