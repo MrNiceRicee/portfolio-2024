@@ -4,9 +4,16 @@ import PortfolioTypography from "../components/PortfolioTypography.astro";
 import AppearanceDemoIcon from "../components/AppearanceDemoIcon.astro";
 
 const themes = [
-  { kind: "light", label: "Light", idle: "SunMedium", active: "Sun" },
-  { kind: "dark", label: "Dark", idle: "Moon", active: "MoonStar" },
-  { kind: "system", label: "System", idle: "Monitor", active: "MonitorCog" },
+  { kind: "light", label: "Light" },
+  { kind: "dark", label: "Dark" },
+  { kind: "system", label: "System" },
+] as const;
+const moonOptions = [{ value: "cloud", label: "Cloud clears" }, { value: "full", label: "Crescent to full" }] as const;
+const studies = [
+  { key: "light", kind: "light", label: "Sun", idle: "Short rays", active: "Extended rays" },
+  { key: "dark-cloud", kind: "dark", moonVariant: "cloud", label: "Cloud clears", idle: "Moon + cloud", active: "Clear moon" },
+  { key: "dark-full", kind: "dark", moonVariant: "full", label: "Crescent to full", idle: "Crescent", active: "Full moon" },
+  { key: "system", kind: "system", label: "System", idle: "Opposite device", active: "Matches device" },
 ] as const;
 ---
 <!doctype html>
@@ -35,49 +42,55 @@ const themes = [
       <section class="live-study" aria-labelledby="live-heading">
         <div class="live-copy">
           <h2 id="live-heading" data-type="section">Try the switch</h2>
-          <p data-type="prose">Choose an appearance. The menu stays open so you can see its 22 px icon change. Choose it again to replay.</p>
+          <p data-type="prose">Choose an appearance to see its 22 px icon change. The menu stays open; choose again to replay.</p>
           <p class="motion-status" data-type="metadata" data-motion-status role="status">Checking motion preference…</p>
           <div class="demo-controls" data-demo-controls data-open="false" data-interaction="pointer">
+          <fieldset class="moon-options">
+            <legend>Dark icon</legend>
+            {moonOptions.map(({ value, label }) => <label><input type="radio" name="moon-variant" value={value} data-moon-option={value} checked={value === "cloud"} /><span>{label}</span></label>)}
+          </fieldset>
+            <div class="menu-anchor">
             <button class="menu-trigger" type="button" data-theme-trigger aria-haspopup="menu" aria-expanded="false" aria-controls="appearance-study-menu" aria-label="Appearance: System">
-              {themes.map(({ kind }) => <span data-trigger-art={kind} hidden={kind !== "system"}><AppearanceDemoIcon kind={kind} state="active" /></span>)}
+              {themes.map(({ kind }) => <span data-trigger-art={kind} hidden={kind !== "system"}>{kind === "dark" ? moonOptions.map(({ value }) => <span data-moon-art={value} hidden={value !== "cloud"}><AppearanceDemoIcon id={`trigger-dark-${value}`} kind={kind} moonVariant={value} state="active" /></span>) : <AppearanceDemoIcon id={`trigger-${kind}`} kind={kind} state="active" />}</span>)}
               <span data-trigger-label>System</span>
               <span class="chevron" aria-hidden="true">⌄</span>
             </button>
             <div id="appearance-study-menu" class="appearance-menu" role="menu" aria-label="Appearance" data-theme-menu hidden>
               {themes.map(({ kind, label }) => <button type="button" class="menu-choice" role="menuitemradio" aria-checked={kind === "system" ? "true" : "false"} data-theme-choice={kind} tabindex="-1">
-                <AppearanceDemoIcon kind={kind} state={kind === "system" ? "active" : "idle"} />
+                {kind === "dark" ? moonOptions.map(({ value }) => <span data-moon-art={value} hidden={value !== "cloud"}><AppearanceDemoIcon id={`menu-dark-${value}`} kind={kind} moonVariant={value} /></span>) : <AppearanceDemoIcon id={`menu-${kind}`} kind={kind} state={kind === "system" ? "active" : "idle"} />}
                 <span>{label}</span>
                 <span class="selected-mark" aria-hidden="true">✓</span>
               </button>)}
+            </div>
             </div>
           </div>
           <p class="menu-note" data-type="metadata">22 px artwork / temporary preview</p>
         </div>
         <figure class="live-stage">
           <div class="stage-art">
-            {themes.map(({ kind }) => <span data-stage-art={kind} hidden={kind !== "system"}><AppearanceDemoIcon kind={kind} state="active" size={48} /></span>)}
+            {themes.map(({ kind }) => <span data-stage-art={kind} hidden={kind !== "system"}>{kind === "dark" ? moonOptions.map(({ value }) => <span data-moon-art={value} hidden={value !== "cloud"}><AppearanceDemoIcon id={`stage-dark-${value}`} kind={kind} moonVariant={value} state="active" size={48} /></span>) : <AppearanceDemoIcon id={`stage-${kind}`} kind={kind} state="active" size={48} />}</span>)}
           </div>
-          <figcaption><span class="stage-label" data-stage-label>System · Active</span><span class="stage-note" data-system-note>Follows your device</span></figcaption>
+          <figcaption><span class="stage-label" data-stage-label>System · Active</span><span class="stage-note" data-system-note data-device-note>Device: Light. Idle: Dark → Active: Light.</span></figcaption>
         </figure>
       </section>
 
       <section class="artwork-study" aria-labelledby="artwork-heading">
         <div class="section-heading"><h2 id="artwork-heading" data-type="section">Compare at 22 px</h2><span data-type="metadata">Idle → Active</span></div>
-        {themes.map(({ kind, label, idle, active }, index) => <article class="artwork-row" aria-labelledby={`${kind}-heading`}>
-          <div class="row-heading"><span class="row-number" data-type="metadata">0{index + 1}</span><h3 id={`${kind}-heading`} data-type="entry">{label}</h3></div>
-          <figure class="artwork"><AppearanceDemoIcon kind={kind} size={22} fixed /><figcaption><span>Idle</span><small>{idle}</small></figcaption></figure>
-          <figure class="artwork" data-replay-art={kind}><AppearanceDemoIcon kind={kind} state="active" size={22} /><figcaption><span data-replay-label>Active</span><small>{active}</small></figcaption></figure>
-          <button class="replay" type="button" data-replay={kind} aria-label={`Replay ${label} icon transition`}>Replay <span aria-hidden="true">↗</span></button>
+        {studies.map((study, index) => <article class="artwork-row" aria-labelledby={`${study.key}-heading`}>
+          <div class="row-heading"><span class="row-number" data-type="metadata">0{index + 1}</span><h3 id={`${study.key}-heading`} data-type="entry">{study.label}</h3></div>
+          <figure class="artwork"><AppearanceDemoIcon id={`${study.key}-idle`} kind={study.kind} moonVariant={"moonVariant" in study ? study.moonVariant : "cloud"} size={22} fixed /><figcaption><span>Idle</span><small>{study.idle}</small></figcaption></figure>
+          <figure class="artwork" data-replay-art={study.key}><AppearanceDemoIcon id={`${study.key}-active`} kind={study.kind} moonVariant={"moonVariant" in study ? study.moonVariant : "cloud"} state="active" size={22} /><figcaption><span data-replay-label>Active</span><small>{study.active}</small></figcaption></figure>
+          <button class="replay" type="button" data-replay={study.key} aria-label={`Replay ${study.label} icon transition`}>Replay <span aria-hidden="true">↗</span></button>
         </article>)}
       </section>
 
       <footer>
-        <p data-type="metadata">A small shift, then a new drawing. 280 ms, once.</p>
+        <p data-type="metadata">Local geometry, anchored outlines. 280 ms, once.</p>
         <p data-type="prose">Keyboard navigation changes states immediately. Reduced motion shows the final drawing without movement.</p>
-        <p class="source-note" data-type="metadata">Artwork: <a href="https://lucide.dev/">Lucide</a>. Inspired by <a href="https://lucide-animated.com/">Lucide Animated</a>; this study uses native CSS transitions. <a href="/third-party/appearance-icons/NOTICE">Sources</a> · <a href="/third-party/appearance-icons/LICENSE">Licenses</a></p>
+        <p class="source-note" data-type="metadata">Artwork: <a href="https://lucide.dev/">Lucide</a>. Inspired by <a href="https://lucide-animated.com/">Lucide Animated</a>; this study adapts the artwork with native SVG and CSS transitions. <a href="/third-party/appearance-icons/NOTICE">Sources</a> · <a href="/third-party/appearance-icons/LICENSE">Licenses</a></p>
         <p class="status" role="status" aria-live="polite" aria-atomic="true" data-demo-status>Preview: System. Active drawing shown.</p>
       </footer>
-      <noscript><p>The six drawings are visible above. Enable JavaScript to try the menu and replay.</p></noscript>
+      <noscript><p>The idle and active drawings are visible above. Enable JavaScript to try the menu and replay.</p></noscript>
     </main>
     <script>
       import { initializeAppearanceDemo } from "../scripts/appearanceDemo";
@@ -92,8 +105,8 @@ const themes = [
   body { margin: 0; background: var(--demo-surface); }
   main { max-width: 880px; margin: 0 auto; padding: 16px clamp(20px, 5vw, 48px) 48px; }
   button, a { color: inherit; }
-  button { font: inherit; border: 1px solid currentColor; background: transparent; cursor: pointer; min-height: 44px; transition: transform 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94); }
-  button:active { transform: scale(0.97); }
+  button { font: inherit; border: 1px solid currentColor; background: transparent; cursor: pointer; min-height: 44px; }
+  button:active { background: color-mix(in srgb, currentColor 10%, transparent); }
   :is(button, a):focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
   a { display: inline-flex; align-items: center; min-height: 44px; }
   .back { font-size: 0.875rem; text-decoration-thickness: 1px; }
@@ -101,7 +114,8 @@ const themes = [
   .live-study { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; padding: 20px 0; margin-top: 20px; border-block: 1px solid color-mix(in srgb, currentColor 25%, transparent); }
   h2, h3, p, figure { margin: 0; }
   .live-copy > p { margin-top: 12px; max-width: 38ch; }
-  .demo-controls { position: relative; width: max-content; margin-top: 16px; z-index: 1; }
+  .demo-controls { width: fit-content; max-width: 100%; margin-top: 12px; z-index: 1; position: relative; }
+  .menu-anchor { position: relative; width: max-content; }
   .menu-trigger { min-width: 156px; display: flex; align-items: center; gap: 12px; padding: 10px 12px; }
   .chevron { margin-left: auto; line-height: 1; }
   .appearance-menu { position: absolute; inset: calc(100% + 8px) auto auto 0; width: 208px; max-width: calc(100vw - 40px); padding: 4px; box-sizing: border-box; border: 1px solid currentColor; background: var(--demo-surface); }
@@ -109,6 +123,11 @@ const themes = [
   .menu-choice { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px 12px; border: 0; }
   .selected-mark { margin-left: auto; visibility: hidden; }
   [aria-checked="true"] .selected-mark { visibility: visible; }
+  .moon-options { border: 0; padding: 0; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 0 16px; font-size: 0.75rem; }
+  .moon-options legend { padding: 0; font-weight: 600; }
+  .moon-options label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; }
+  .moon-options input { margin: 0; accent-color: currentColor; }
+  .moon-options input:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
   .menu-note { font-size: 0.75rem !important; }
   .motion-status { margin-top: 8px; font-size: 0.75rem !important; max-width: 40ch; }
   .source-note { font-size: 0.75rem !important; }
@@ -117,7 +136,7 @@ const themes = [
   .stage-art { min-height: 48px; display: grid; align-items: center; }
   .live-stage figcaption { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.875rem; }
   .stage-label { font-weight: 600; }
-  .stage-note { font-size: 0.75rem; min-height: 1.5em; }
+  .stage-note { font-size: 0.75rem; min-height: 1.5em; max-width: 32ch; }
   .artwork-study { margin-top: 40px; }
   .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; padding-bottom: 24px; }
   .section-heading > span { white-space: nowrap; font-size: 0.75rem; }
@@ -142,5 +161,5 @@ const themes = [
     .row-heading { grid-column: 1 / -1; }
     .replay { grid-column: 1 / -1; justify-self: start; }
   }
-  @media (prefers-reduced-motion: reduce) { button { transition: none; } button:active { transform: none; } }
+
 </style>
