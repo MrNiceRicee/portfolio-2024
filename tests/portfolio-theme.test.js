@@ -41,8 +41,17 @@ async function withRuntime(run, { saved = "light", preview = "dark", storageThro
     hasAttribute: () => false,
     classList: { contains: () => dark, toggle: (_, value) => { dark = value; } },
   };
-  const radios = ["light", "dark", "system"].map((value) => Object.assign(new EventTarget(), { value, checked: false }));
-  const controls = Object.assign(new EventTarget(), { hidden: true, querySelectorAll: () => radios });
+  const buttons = ["light", "dark", "system"].map((value) => Object.assign(new EventTarget(), {
+    dataset: { themeChoice: value }, attributes: {},
+    setAttribute(name, value) { this.attributes[name] = value; },
+    getAttribute(name) { return this.attributes[name]; },
+  }));
+  const label = { textContent: "System" };
+  const trigger = { attributes: {}, setAttribute(name, value) { this.attributes[name] = value; } };
+  const controls = Object.assign(new EventTarget(), {
+    hidden: true, dataset: {}, querySelectorAll: () => buttons,
+    querySelector: (selector) => selector === "[data-theme-label]" ? label : selector === "[data-theme-trigger]" ? trigger : null,
+  });
   const pause = new EventTarget();
   const metadata = Object.fromEntries(["theme-color", "apple-mobile-web-app-status-bar-style"].map((name) => [name, { setAttribute(_, value) { this.content = value; } }]));
   const document = Object.assign(new EventTarget(), {
@@ -79,9 +88,7 @@ async function withRuntime(run, { saved = "light", preview = "dark", storageThro
     requestAnimationFrame() { animationFrames++; return 1; },
   };
   const choose = (value) => {
-    const radio = radios.find((entry) => entry.value === value);
-    radios.forEach((entry) => { entry.checked = entry === radio; });
-    radio.dispatchEvent(new Event("change"));
+    buttons.find((entry) => entry.dataset.themeChoice === value).dispatchEvent(new Event("click"));
   };
   const osTheme = (value) => { system.matches = value; system.dispatchEvent(new Event("change")); };
   const hide = (persisted) => window.dispatchEvent(Object.assign(new Event("pagehide"), { persisted }));
@@ -90,7 +97,7 @@ async function withRuntime(run, { saved = "light", preview = "dark", storageThro
     new Function("document", "window", headScript)(document, window);
     storageReads = 0;
     initializePortfolioTheme();
-    await run({ root, controls, radios, metadata, storage, replacements, window, reduced, pause, choose, osTheme, hide,
+    await run({ root, controls, buttons, label, trigger, metadata, storage, replacements, window, reduced, pause, choose, osTheme, hide,
       dark: () => dark, storageReads: () => storageReads, animationFrames: () => animationFrames,
       startFilm() { initializeProposalFilm(true); intersections([{ isIntersecting: true }]); },
     });
@@ -101,9 +108,12 @@ async function withRuntime(run, { saved = "light", preview = "dark", storageThro
 }
 
 test("runtime consumes the head preview, persists intentional choices, and strips only the theme query", async () => {
-  await withRuntime(({ root, controls, radios, metadata, storage, replacements, choose, osTheme, dark, storageReads }) => {
+  await withRuntime(({ root, controls, buttons, label, trigger, metadata, storage, replacements, choose, osTheme, dark, storageReads }) => {
     expect(controls.hidden).toBe(false);
-    expect(radios.map((radio) => radio.checked)).toEqual([false, true, false]);
+    expect(controls.dataset.preference).toBe("dark");
+    expect(label.textContent).toBe("Dark");
+    expect(trigger.attributes["aria-label"]).toBe("Appearance: Dark");
+    expect(buttons.map((button) => button.getAttribute("aria-checked"))).toEqual(["false", "true", "false"]);
     expect(storageReads()).toBe(0);
     expect(storage.get("portfolio-theme")).toBe("light");
     expect(metadata["theme-color"].content).toBe("#181615");
@@ -117,8 +127,11 @@ test("runtime consumes the head preview, persists intentional choices, and strip
     expect(resolveHead({ saved: storage.get("portfolio-theme"), systemDark: true })).toEqual({ preference: "light", dark: false });
     choose("system"); expect(dark()).toBe(true);
     osTheme(false); expect(dark()).toBe(false);
-    expect(radios.map((radio) => radio.checked)).toEqual([false, false, true]);
+    expect(buttons.map((button) => button.getAttribute("aria-checked"))).toEqual(["false", "false", "true"]);
     expect(storage.get("portfolio-theme")).toBe("system");
+    expect(controls.dataset.preference).toBe("system");
+    expect(label.textContent).toBe("System");
+    expect(trigger.attributes["aria-label"]).toBe("Appearance: System");
   });
 });
 

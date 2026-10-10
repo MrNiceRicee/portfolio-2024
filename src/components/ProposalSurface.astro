@@ -1,6 +1,8 @@
 ---
 import filmMaterial from "../assets/proposal-film.png";
 import grain from "../assets/noise.svg";
+import ThemeIcon from "./icons/ThemeIcon.astro";
+import ChevronRight from "./icons/ChevronRight.astro";
 ---
 <div class="proposal-decoration" aria-hidden="true">
   <div class="proposal-paper-fallback" style={`--fallback-material: url("${filmMaterial.src}")`}></div>
@@ -12,14 +14,27 @@ import grain from "../assets/noise.svg";
 </div>
 <canvas class="proposal-particles fixed inset-0 pointer-events-none z-[100] opacity-35 dark:opacity-25" data-proposal-particles aria-hidden="true"></canvas>
 <div class="proposal-controls" data-type="metadata">
-  <fieldset class="proposal-theme" data-theme-controls hidden>
-    <legend>Theme</legend>
-    <div class="proposal-theme-options">
-      <label><input type="radio" name="portfolio-theme" value="light" /><span>Light</span></label>
-      <label><input type="radio" name="portfolio-theme" value="dark" /><span>Dark</span></label>
-      <label><input type="radio" name="portfolio-theme" value="system" checked /><span>System</span></label>
+  <div class="proposal-appearance" data-theme-controls data-preference="system" data-open="false" hidden>
+    <button class="proposal-appearance-trigger" id="appearance-trigger" type="button" data-theme-trigger aria-label="Appearance: System" aria-haspopup="menu" aria-controls="appearance-menu" aria-expanded="false">
+      <span class="proposal-appearance-current-icon" aria-hidden="true">
+        <ThemeIcon kind="light" class="proposal-appearance-icon" />
+        <ThemeIcon kind="dark" class="proposal-appearance-icon" />
+        <ThemeIcon kind="system" class="proposal-appearance-icon" />
+      </span>
+      <span data-theme-label>System</span>
+      <ChevronRight class="proposal-appearance-chevron" />
+    </button>
+    <div class="proposal-appearance-menu" id="appearance-menu" data-theme-menu role="menu" aria-labelledby="appearance-trigger" hidden>
+      <div class="proposal-appearance-heading" aria-hidden="true">Appearance</div>
+      {(["light", "dark", "system"] as const).map((preference) => (
+        <button type="button" class="proposal-appearance-option" role="menuitemradio" data-theme-choice={preference} aria-checked={preference === "system"} tabindex="-1">
+          <ThemeIcon kind={preference} class="proposal-appearance-option-icon" />
+          <span>{preference.charAt(0).toUpperCase() + preference.slice(1)}</span>
+          <svg class="proposal-appearance-check" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4 10-10" /></svg>
+        </button>
+      ))}
     </div>
-  </fieldset>
+  </div>
   <button class="proposal-pause" type="button" data-pause-film hidden>Pause film</button>
 </div>
 
@@ -99,32 +114,77 @@ import grain from "../assets/noise.svg";
     position: relative;
     z-index: 102;
   }
-  .proposal-theme {
-    margin: 0;
-    padding: 0;
-    min-width: 0;
-    border: 0;
-  }
-  .proposal-theme legend { margin-bottom: 4px; }
-  .proposal-theme-options { display: flex; flex-wrap: wrap; gap: 4px; }
-  .proposal-theme label {
+  .proposal-appearance { position: relative; min-width: 0; }
+  .proposal-appearance-trigger {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     min-height: 44px;
-    padding: 0 10px;
-    cursor: pointer;
-    border: 1px solid transparent;
+    padding: 8px 10px;
+    color: inherit;
+    background: var(--proposal-paper);
+    border: 1px solid currentColor;
     border-radius: 2px;
+    cursor: pointer;
   }
-  .proposal-theme label:has(input:checked) { border-color: currentColor; }
-  .proposal-theme input { margin: 0; accent-color: var(--focus-ink); }
-  .proposal-theme label:has(input:focus-visible) {
-    background-color: var(--proposal-wash);
-    outline: 2px solid var(--focus-ink);
-    outline-offset: 2px;
+  .proposal-appearance [data-theme-label] { min-width: 6ch; text-align: left; }
+  .proposal-appearance-current-icon { position: relative; width: 16px; height: 16px; }
+  .proposal-appearance-icon { position: absolute; inset: 0; width: 16px; height: 16px; opacity: 0; transform: scale(0.8) rotate(-12deg); }
+  .proposal-appearance[data-preference="light"] [data-theme-icon="light"],
+  .proposal-appearance[data-preference="dark"] [data-theme-icon="dark"],
+  .proposal-appearance[data-preference="system"] [data-theme-icon="system"] { opacity: 1; transform: scale(1) rotate(0); }
+  .proposal-appearance-chevron { width: 14px; height: 14px; transform: rotate(-90deg); }
+  .proposal-appearance[data-open="true"] .proposal-appearance-chevron { transform: rotate(90deg); }
+  .proposal-appearance-menu {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    width: min(224px, calc(100vw - 48px));
+    box-sizing: border-box;
+    padding: 6px;
+    background: var(--proposal-paper);
+    border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+    border-radius: 3px;
+    box-shadow: 0 5px 16px #00000014;
+    transform-origin: bottom left;
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+    visibility: hidden;
+    pointer-events: none;
   }
-  .proposal-theme input:focus-visible { outline: none; box-shadow: none; }
+  html.dark .proposal-appearance-menu { box-shadow: 0 5px 16px #00000040; }
+  .proposal-appearance[data-open="true"] .proposal-appearance-menu { opacity: 1; transform: translateY(0) scale(1); visibility: visible; pointer-events: auto; }
+  .proposal-appearance-heading { padding: 7px 10px 8px; font-size: 12px; letter-spacing: 0.04em; }
+  .proposal-appearance-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 2px;
+    color: inherit;
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .proposal-appearance-option[aria-checked="true"] { background: color-mix(in srgb, currentColor 6%, var(--proposal-paper)); }
+  .proposal-appearance-option-icon { width: 16px; height: 16px; opacity: 0.65; transform: scale(0.92); }
+  .proposal-appearance-option[aria-checked="true"] .proposal-appearance-option-icon,
+  .proposal-appearance-option:focus-visible .proposal-appearance-option-icon { opacity: 1; transform: scale(1); }
+  .proposal-appearance[data-interaction="pointer"] .proposal-appearance-trigger:active { transform: scale(0.98); }
+  .proposal-appearance-check { margin-left: auto; opacity: 0; }
+  .proposal-appearance-option[aria-checked="true"] .proposal-appearance-check { opacity: 1; }
+  .proposal-appearance[data-interaction="pointer"] :is(.proposal-appearance-icon, .proposal-appearance-option-icon, .proposal-appearance-chevron, .proposal-appearance-trigger) { transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms cubic-bezier(0.16, 1, 0.3, 1); }
+  .proposal-appearance[data-interaction="pointer"] .proposal-appearance-menu { transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 160ms; }
+  .proposal-appearance[data-interaction="pointer"][data-open="true"] .proposal-appearance-menu { transition-delay: 0s; }
+  @media (hover: hover) and (pointer: fine) {
+    .proposal-appearance-option:hover .proposal-appearance-option-icon { opacity: 1; transform: scale(1); }
+    .proposal-appearance-trigger:hover, .proposal-appearance-option:hover { background: color-mix(in srgb, currentColor 9%, var(--proposal-paper)); }
+  }
   .proposal-pause {
     position: relative;
     margin: 0;
@@ -137,12 +197,13 @@ import grain from "../assets/noise.svg";
     border: 1px solid currentColor;
     border-radius: 2px;
   }
-  .proposal-pause[hidden], .proposal-theme[hidden] { display: none; }
+  .proposal-pause[hidden], .proposal-appearance[hidden], .proposal-appearance-menu[hidden] { display: none; }
   html[data-proposal][data-fallback] :is(.proposal-decoration, .proposal-fibers, .proposal-film, .proposal-particles) { display: none; }
 
   @media (prefers-reduced-motion: reduce) {
     html[data-proposal] :is(.proposal-grain, .proposal-film, .proposal-particles) { animation: none; }
     .proposal-particles { display: none; }
+    .proposal-appearance :is(.proposal-appearance-icon, .proposal-appearance-option-icon, .proposal-appearance-chevron, .proposal-appearance-trigger, .proposal-appearance-menu) { transition: none !important; }
   }
 
   /* Every proposal retains the complete, immediate 2px edge. */
@@ -170,7 +231,7 @@ import grain from "../assets/noise.svg";
     pointer-events: none;
   }
   @media (forced-colors: active) {
-    .proposal-theme label:has(input:focus-visible) { outline-color: Highlight; }
+    .proposal-appearance-option[aria-checked="true"] { outline: 1px solid SelectedItem; }
     html[data-proposal] :where(a[href], button, summary, input, select, textarea):focus-visible {
       box-shadow: none;
       outline-color: Highlight;
