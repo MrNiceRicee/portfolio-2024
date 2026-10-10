@@ -20,10 +20,15 @@ async function withMenu(run) {
     tabIndex = -1;
     hidden = false;
     inert = false;
+    focusScrollY = 3000;
     setAttribute(name, value) { this.attributes[name] = value; }
     getAttribute(name) { return this.attributes[name]; }
     contains(node) { return node === this || this.children.some((child) => child.contains(node)); }
-    focus() { document.activeElement = this; }
+    focus(options) {
+      document.activeElement = this;
+      // offscreen focus scrolls unless the caller explicitly preserves the viewport
+      if (!options?.preventScroll) window.scrollY = this.focusScrollY;
+    }
     matches() { return false; }
     closest(selector) {
       if (selector.includes("[data-theme-controls]") && controls.contains(this)) return controls;
@@ -41,7 +46,7 @@ async function withMenu(run) {
   controls.children = [trigger, menu]; menu.children = items;
   controls.querySelectorAll = () => items;
   controls.querySelector = (selector) => selector === "[data-theme-trigger]" ? trigger : selector === "[data-theme-menu]" ? menu : null;
-  const window = new EventTarget();
+  const window = Object.assign(new EventTarget(), { scrollY: 500 });
   let SpoilerClass, spoiler;
   const values = { document, window, HTMLElement: Element, Element, customElements: { define(_, value) { SpoilerClass = value; } } };
   const lifetime = new AbortController();
@@ -103,13 +108,73 @@ test("keyboard and pointer opening, roving navigation, selection and focus retur
   });
 });
 
+test("menu opening and roving focus preserve an offscreen reading position", async () => {
+  await withMenu(({ trigger, items, document, window, click, key }) => {
+    for (const detail of [1, 0]) {
+      click(trigger, detail);
+      expect(document.activeElement).toBe(items[detail === 0 ? 0 : 2]);
+      expect(window.scrollY).toBe(500);
+      for (const [navigation, index] of [["Home", 0], ["ArrowUp", 2], ["ArrowDown", 0], ["End", 2]]) {
+        expect(key(navigation).defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(items[index]);
+        expect(window.scrollY).toBe(500);
+      }
+      key("Escape");
+    }
+    for (const [navigation, index] of [["ArrowUp", 2], ["ArrowDown", 0]]) {
+      key(navigation, trigger);
+      expect(document.activeElement).toBe(items[index]);
+      expect(window.scrollY).toBe(500);
+      key("Escape");
+    }
+  });
+});
+
+test("selection, Escape and the first outside dismissal return focus without scrolling", async () => {
+  await withMenu(async ({ trigger, menu, items, document, window, click, key, event, spoilerButton, Element }) => {
+    click(spoilerButton);
+    const outside = new Element();
+    let activations = 0; outside.addEventListener("click", () => { activations++; });
+    const dismissals = [
+      ...items.map((item) => () => click(item)),
+      () => key("Escape"),
+      () => click(trigger),
+      () => {
+        const down = event("pointerdown", outside); document.dispatchEvent(down);
+        expect(down.defaultPrevented).toBe(true);
+        expect(click(outside).defaultPrevented).toBe(true);
+      },
+    ];
+    for (const dismiss of dismissals) {
+      click(trigger);
+      window.scrollY = 500;
+      dismiss();
+      expect(document.activeElement).toBe(trigger);
+      expect(menu.inert).toBe(true);
+      expect(window.scrollY).toBe(500);
+      await settle();
+      expect(spoilerButton.dataset.status).toBe("active");
+    }
+    expect(activations).toBe(0);
+    expect(click(outside).defaultPrevented).toBe(false);
+    expect(activations).toBe(1);
+  });
+});
+
 test("Tab and ShiftTab close without canceling native traversal; focus departure closes without stealing focus", async () => {
-  await withMenu(({ controls, trigger, menu, document, click, key, event, Element }) => {
+  await withMenu(({ controls, trigger, menu, document, window, click, key, event, Element }) => {
     for (const shiftKey of [false, true]) {
       click(trigger, 0);
+      window.scrollY = 500;
       expect(key("Tab", document.activeElement, { shiftKey }).defaultPrevented).toBe(false);
       expect(document.activeElement).toBe(trigger);
       expect(menu.inert).toBe(true);
+      expect(window.scrollY).toBe(500);
+      // the browser's uncanceled Tab default can still reveal the next destination
+      const destination = new Element(); destination.focusScrollY = shiftKey ? 200 : 3500;
+      destination.focus();
+      expect(document.activeElement).toBe(destination);
+      expect(window.scrollY).toBe(destination.focusScrollY);
     }
     click(trigger);
     const outside = new Element(); outside.focus();

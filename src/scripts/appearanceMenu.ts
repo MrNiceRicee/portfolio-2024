@@ -9,14 +9,14 @@ export function initializeAppearanceMenu(controls: HTMLElement, signal: AbortSig
 
   const focusItem = (index: number) => {
     items.forEach((item, position) => { item.tabIndex = position === index ? 0 : -1; });
-    items[index]?.focus();
+    items[index]?.focus({ preventScroll: true });
   };
   const close = (returnFocus: boolean) => {
     if (!open) return;
     open = false;
     controls.dataset.open = "false";
     trigger.setAttribute("aria-expanded", "false");
-    if (returnFocus) trigger.focus();
+    if (returnFocus) trigger.focus({ preventScroll: true });
     menu.inert = true;
     items.forEach((item) => { item.tabIndex = -1; });
   };
