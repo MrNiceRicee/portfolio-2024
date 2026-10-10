@@ -13,17 +13,27 @@ export function initializeAppearanceDemo() {
   const stageLabel = document.querySelector<HTMLElement>("[data-stage-label]");
   const systemNote = document.querySelector<HTMLElement>("[data-system-note]");
   const status = document.querySelector<HTMLElement>("[data-demo-status]");
-  if (!controls || !trigger || !triggerLabel || !stageLabel || !systemNote || !status) return;
+  const motionStatus = document.querySelector<HTMLElement>("[data-motion-status]");
+  if (!controls || !trigger || !triggerLabel || !stageLabel || !systemNote || !status || !motionStatus) return;
 
   const signal = new AbortController().signal;
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   const deviceTheme = matchMedia("(prefers-color-scheme: dark)");
-  const finePointer = matchMedia("(hover: hover) and (pointer: fine)");
   const choices = Array.from(controls.querySelectorAll<HTMLButtonElement>("[data-theme-choice]"));
   const replays = new Set<Replay>();
   const initialTheme = document.documentElement.dataset.demoTheme;
   let selected: Theme = isTheme(initialTheme) ? initialTheme : "system";
 
+  let lastAction: "keyboard" | "selection" | "replay" = "keyboard";
+  const updateMotionStatus = (action = lastAction) => {
+    lastAction = action;
+    motionStatus.textContent = reduced.matches
+      ? "prefers-reduced-motion: reduce · Motion suppressed; final artwork shown."
+      : `prefers-reduced-motion: no-preference · ${action === "keyboard" ? "Keyboard changes are immediate; Replay uses 280 ms." : "280 ms opacity / rotation / scale handoff."}`;
+  };
+  const cancelIconAnimations = (icon: HTMLElement) => {
+    icon.getAnimations({ subtree: true }).forEach((animation) => animation.cancel());
+  };
   const setArt = (icon: HTMLElement, active: boolean, immediate = false) => {
     icon.dataset.instant = String(immediate || reduced.matches);
     icon.dataset.state = active ? "active" : "idle";
@@ -31,11 +41,18 @@ export function initializeAppearanceDemo() {
   const finishReplay = (replay: Replay) => {
     cancelAnimationFrame(replay.frame);
     clearTimeout(replay.timer);
-    replay.icons.forEach((icon) => setArt(icon, true, true));
+    replay.icons.forEach((icon) => {
+      setArt(icon, true, true);
+      cancelIconAnimations(icon);
+    });
     if (replay.label) replay.label.textContent = "Active";
     replays.delete(replay);
   };
   const cancelReplays = () => replays.forEach(finishReplay);
+  const cancelMotion = () => {
+    cancelReplays();
+    document.querySelectorAll<HTMLElement>("[data-demo-icon]").forEach(cancelIconAnimations);
+  };
 
   const replayArt = (icons: HTMLElement[], label?: HTMLElement) => {
     // repeat presses cancel the old handoff before staging the next one
@@ -53,7 +70,7 @@ export function initializeAppearanceDemo() {
     replays.add(replay);
     replay.frame = requestAnimationFrame(() => {
       replay.frame = requestAnimationFrame(() => {
-        // allow the idle drawing to paint before the 240 ms css transition
+        // allow the idle drawing to paint before the 280 ms css transition
         replay.timer = window.setTimeout(() => {
           icons.forEach((icon) => setArt(icon, true));
           if (label) label.textContent = "Active";
@@ -73,19 +90,26 @@ export function initializeAppearanceDemo() {
   };
 
   const selectTheme = (theme: Theme, keyboard: boolean) => {
-    cancelReplays();
+    const repeat = theme === selected;
+    cancelMotion();
     selected = theme;
+    controls.dataset.interaction = keyboard ? "keyboard" : "pointer";
+    updateMotionStatus(keyboard ? "keyboard" : "selection");
     applyTheme();
     const label = themeLabel(theme);
     triggerLabel.textContent = label;
     trigger.setAttribute("aria-label", `Appearance: ${label}`);
     stageLabel.textContent = `${label} · Active`;
     status.textContent = `Preview: ${label}. Active drawing shown.${selected === "system" ? " Follows your device." : ""}`;
+    const menuIcons: HTMLElement[] = [];
     choices.forEach((choice) => {
       const active = choice.dataset.themeChoice === selected;
       choice.setAttribute("aria-checked", String(active));
       const icon = choice.querySelector<HTMLElement>("[data-demo-icon]");
-      if (icon) setArt(icon, active, keyboard);
+      if (icon) {
+        setArt(icon, active, keyboard);
+        if (active && repeat) menuIcons.push(icon);
+      }
     });
     const liveIcons: HTMLElement[] = [];
     document.querySelectorAll<HTMLElement>("[data-trigger-art], [data-stage-art]").forEach((art) => {
@@ -97,36 +121,24 @@ export function initializeAppearanceDemo() {
         if (active) liveIcons.push(icon);
       }
     });
-    if (!keyboard) replayArt(liveIcons);
+    if (!keyboard) replayArt([...menuIcons, ...liveIcons]);
   };
 
-  // the shared helper owns native menu navigation, dismissal and preventScroll focus
-  initializeAppearanceMenu(controls, signal);
+  // capture owns demo selection; the shared helper still owns navigation and dismissal
   choices.forEach((choice) => {
     choice.addEventListener("click", (event) => {
       const theme = choice.dataset.themeChoice;
-      if (isTheme(theme)) selectTheme(theme, event.detail === 0);
-    });
-    choice.addEventListener("pointerenter", (event) => {
-      if (!finePointer.matches || event.pointerType !== "mouse") return;
-      controls.dataset.interaction = "pointer";
-      const icon = choice.querySelector<HTMLElement>("[data-demo-icon]");
-      if (icon) setArt(icon, true);
-    });
-    choice.addEventListener("pointerleave", () => {
-      const icon = choice.querySelector<HTMLElement>("[data-demo-icon]");
-      if (icon) setArt(icon, choice.dataset.themeChoice === selected, controls.dataset.interaction === "keyboard");
-    });
-    choice.addEventListener("focus", () => {
-      if (controls.dataset.interaction !== "keyboard") return;
-      const icon = choice.querySelector<HTMLElement>("[data-demo-icon]");
-      if (icon) setArt(icon, true, true);
-    });
-    choice.addEventListener("blur", () => {
-      const icon = choice.querySelector<HTMLElement>("[data-demo-icon]");
-      if (icon) setArt(icon, choice.dataset.themeChoice === selected, controls.dataset.interaction === "keyboard");
-    });
+      if (!isTheme(theme)) return;
+      event.stopImmediatePropagation();
+      selectTheme(theme, event.detail === 0);
+    }, { capture: true, signal });
   });
+  controls.addEventListener("keydown", (event) => {
+    if (event.isComposing || event.ctrlKey || event.altKey || event.metaKey) return;
+    cancelMotion();
+    updateMotionStatus("keyboard");
+  }, { signal });
+  initializeAppearanceMenu(controls, signal);
   document.querySelectorAll<HTMLButtonElement>("[data-replay]").forEach((button) => {
     button.addEventListener("click", () => {
       const theme = button.dataset.replay;
@@ -136,6 +148,7 @@ export function initializeAppearanceDemo() {
       const label = artwork?.querySelector<HTMLElement>("[data-replay-label]") ?? undefined;
       if (!icon) return;
       replayArt([icon], label);
+      updateMotionStatus("replay");
       status.textContent = `${themeLabel(theme)} drawing ${reduced.matches ? "shown immediately" : "replayed"}. Preview remains ${themeLabel(selected)}.`;
     });
   });
@@ -143,11 +156,12 @@ export function initializeAppearanceDemo() {
     document.querySelectorAll<HTMLElement>("[data-demo-icon]").forEach((icon) => {
       icon.dataset.instant = String(reduced.matches);
     });
-    cancelReplays();
+    cancelMotion();
+    updateMotionStatus();
   });
   deviceTheme.addEventListener("change", () => {
     if (selected === "system") applyTheme();
   });
-  window.addEventListener("pagehide", cancelReplays);
+  window.addEventListener("pagehide", cancelMotion);
   selectTheme(selected, true);
 }

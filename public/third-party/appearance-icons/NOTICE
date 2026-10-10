@@ -1,0 +1,24 @@
+Appearance demo icon sources
+
+The six SVG child sequences in src/components/AppearanceDemoIcon.astro are copied
+unchanged from the official Lucide repository at commit:
+70562c1ee1c4fdcf736fe97bc893fb8511927934
+https://github.com/lucide-icons/lucide/tree/70562c1ee1c4fdcf736fe97bc893fb8511927934/icons
+
+Light: sun-medium.svg -> sun.svg
+Dark: moon.svg -> moon-star.svg
+System: monitor.svg -> monitor-cog.svg
+
+Lucide: ISC, Copyright (c) 2026 Lucide Icons and Contributors.
+Feather-derived artwork: MIT, Copyright (c) 2013-present Cole Bemis.
+Full retained copyright and permission notices are in the adjacent LICENSE file.
+
+Visual/animation reference: Lucide Animated (pqoqubbw/icons), inspected at commit:
+cf847c1f6ba0e1f0695e2ded6bf6d86df0a09232
+https://github.com/pqoqubbw/icons/tree/cf847c1f6ba0e1f0695e2ded6bf6d86df0a09232/icons
+sun-medium.tsx, sun.tsx, moon.tsx, monitor-cog.tsx
+MIT, Copyright (c) 2024-2026 pqoqubbw. Full notice is retained in LICENSE.
+
+This demo adapts the visual family to two always-mounted SVG layers in one native
+CSS grid cell. Its opacity/rotation/scale handoff is a local 280ms CSS adaptation;
+it does not execute or install the stock React/Motion animation components.
