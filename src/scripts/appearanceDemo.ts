@@ -22,7 +22,7 @@ export function initializeAppearanceDemo() {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   const deviceTheme = matchMedia("(prefers-color-scheme: dark)");
   const choices = Array.from(controls.querySelectorAll<HTMLButtonElement>("[data-theme-choice]"));
-  const icons = Array.from(document.querySelectorAll<HTMLElement>("[data-demo-icon]"));
+  const icons = Array.from(document.querySelectorAll<HTMLElement>("[data-appearance-icon]"));
   const moonOptions = Array.from(controls.querySelectorAll<HTMLInputElement>("[data-moon-option]"));
   const replays = new Set<Replay>();
   const initialTheme = document.documentElement.dataset.demoTheme;
@@ -90,7 +90,7 @@ export function initializeAppearanceDemo() {
   const updateDeviceArtwork = () => {
     const device = deviceTheme.matches ? "dark" : "light";
     icons.forEach((icon) => {
-      if (icon.dataset.demoIcon === "system") icon.dataset.deviceTheme = device;
+      if (icon.dataset.appearanceIcon === "system") icon.dataset.deviceTheme = device;
     });
     systemNote.textContent = `Device: ${themeLabel(device)}. Idle: ${deviceTheme.matches ? "Light" : "Dark"} → Active: ${themeLabel(device)}.`;
   };
@@ -99,8 +99,8 @@ export function initializeAppearanceDemo() {
     document.documentElement.classList.toggle("dark", dark);
     document.documentElement.dataset.demoTheme = selected;
   };
-  const visibleIcons = (element: HTMLElement) => Array.from(element.querySelectorAll<HTMLElement>("[data-demo-icon]"))
-    .filter((icon) => icon.dataset.demoIcon !== "dark" || icon.dataset.moonVariant === moonVariant);
+  const visibleIcons = (element: HTMLElement) => Array.from(element.querySelectorAll<HTMLElement>("[data-appearance-icon]"))
+    .filter((icon) => icon.dataset.appearanceIcon !== "dark" || icon.dataset.moonVariant === moonVariant);
 
   const syncTheme = (keyboard: boolean, animateLive = false) => {
     controls.dataset.interaction = keyboard ? "keyboard" : "pointer";
@@ -114,13 +114,13 @@ export function initializeAppearanceDemo() {
     choices.forEach((choice) => {
       const active = choice.dataset.themeChoice === selected;
       choice.setAttribute("aria-checked", String(active));
-      choice.querySelectorAll<HTMLElement>("[data-demo-icon]").forEach((icon) => setArt(icon, active, keyboard));
+      choice.querySelectorAll<HTMLElement>("[data-appearance-icon]").forEach((icon) => setArt(icon, active, keyboard));
     });
     const liveIcons: HTMLElement[] = [];
     document.querySelectorAll<HTMLElement>("[data-trigger-art], [data-stage-art]").forEach((art) => {
       const active = (art.dataset.triggerArt ?? art.dataset.stageArt) === selected;
       art.hidden = !active;
-      art.querySelectorAll<HTMLElement>("[data-demo-icon]").forEach((icon) => setArt(icon, true, true));
+      art.querySelectorAll<HTMLElement>("[data-appearance-icon]").forEach((icon) => setArt(icon, true, true));
       if (active) liveIcons.push(...visibleIcons(art));
     });
     if (animateLive && !keyboard) replayArt(liveIcons);
@@ -181,7 +181,7 @@ export function initializeAppearanceDemo() {
     button.addEventListener("click", () => {
       const key = button.dataset.replay;
       const artwork = document.querySelector<HTMLElement>(`[data-replay-art="${key}"]`);
-      const icon = artwork?.querySelector<HTMLElement>("[data-demo-icon]");
+      const icon = artwork?.querySelector<HTMLElement>("[data-appearance-icon]");
       const label = artwork?.querySelector<HTMLElement>("[data-replay-label]") ?? undefined;
       if (!icon) return;
       replayArt([icon], label);

@@ -1,5 +1,9 @@
 /** focus and dismissal belong to the menu; preference belongs to the theme runtime */
-export function initializeAppearanceMenu(controls: HTMLElement, signal: AbortSignal) {
+export function initializeAppearanceMenu(
+  controls: HTMLElement,
+  signal: AbortSignal,
+  { keepOpenOnSelection = false }: { keepOpenOnSelection?: boolean } = {},
+) {
   const trigger = controls.querySelector<HTMLButtonElement>("[data-theme-trigger]");
   const menu = controls.querySelector<HTMLElement>("[data-theme-menu]");
   const items = Array.from(controls.querySelectorAll<HTMLButtonElement>("[data-theme-choice]"));
@@ -34,9 +38,10 @@ export function initializeAppearanceMenu(controls: HTMLElement, signal: AbortSig
     if (open) close(true);
     else show(keyboard ? 0 : Math.max(0, items.findIndex((item) => item.getAttribute("aria-checked") === "true")));
   }, options);
-  items.forEach((item) => item.addEventListener("click", (event) => {
+  items.forEach((item, index) => item.addEventListener("click", (event) => {
     controls.dataset.interaction = event.detail === 0 ? "keyboard" : "pointer";
-    close(true);
+    if (keepOpenOnSelection && open) focusItem(index);
+    else close(true);
   }, options));
   controls.addEventListener("keydown", (event) => {
     controls.dataset.interaction = "keyboard";

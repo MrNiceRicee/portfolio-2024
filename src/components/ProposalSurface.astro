@@ -1,7 +1,7 @@
 ---
 import filmMaterial from "../assets/proposal-film.png";
 import grain from "../assets/noise.svg";
-import ThemeIcon from "./icons/ThemeIcon.astro";
+import AppearanceIcon from "./AppearanceIcon.astro";
 import ChevronRight from "./icons/ChevronRight.astro";
 ---
 <div class="proposal-decoration" aria-hidden="true">
@@ -17,9 +17,11 @@ import ChevronRight from "./icons/ChevronRight.astro";
   <div class="proposal-appearance" data-theme-controls data-preference="system" data-open="false" hidden>
     <button class="proposal-appearance-trigger" id="appearance-trigger" type="button" data-theme-trigger aria-label="Appearance: System" aria-haspopup="menu" aria-controls="appearance-menu" aria-expanded="false">
       <span class="proposal-appearance-current-icon" aria-hidden="true">
-        <ThemeIcon kind="light" class="proposal-appearance-icon" />
-        <ThemeIcon kind="dark" class="proposal-appearance-icon" />
-        <ThemeIcon kind="system" class="proposal-appearance-icon" />
+        {(["light", "dark", "system"] as const).map((kind) => (
+          <span class="proposal-appearance-trigger-art" data-theme-trigger-art={kind}>
+            <AppearanceIcon id={`appearance-trigger-${kind}`} kind={kind} state={kind === "system" ? "active" : "idle"} />
+          </span>
+        ))}
       </span>
       <span data-theme-label>System</span>
       <ChevronRight class="proposal-appearance-chevron" />
@@ -28,7 +30,7 @@ import ChevronRight from "./icons/ChevronRight.astro";
       <div class="proposal-appearance-heading" aria-hidden="true">Appearance</div>
       {(["light", "dark", "system"] as const).map((preference) => (
         <button type="button" class="proposal-appearance-option" role="menuitemradio" data-theme-choice={preference} aria-checked={preference === "system"} tabindex="-1">
-          <ThemeIcon kind={preference} class="proposal-appearance-option-icon" />
+          <AppearanceIcon id={`appearance-menu-${preference}`} kind={preference} state={preference === "system" ? "active" : "idle"} />
           <span>{preference.charAt(0).toUpperCase() + preference.slice(1)}</span>
           <svg class="proposal-appearance-check" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4 10-10" /></svg>
         </button>
@@ -128,11 +130,11 @@ import ChevronRight from "./icons/ChevronRight.astro";
     cursor: pointer;
   }
   .proposal-appearance [data-theme-label] { min-width: 6ch; text-align: left; }
-  .proposal-appearance-current-icon { position: relative; width: 16px; height: 16px; }
-  .proposal-appearance-icon { position: absolute; inset: 0; width: 16px; height: 16px; opacity: 0; transform: scale(0.8) rotate(-12deg); }
-  .proposal-appearance[data-preference="light"] [data-theme-icon="light"],
-  .proposal-appearance[data-preference="dark"] [data-theme-icon="dark"],
-  .proposal-appearance[data-preference="system"] [data-theme-icon="system"] { opacity: 1; transform: scale(1) rotate(0); }
+  .proposal-appearance-current-icon { display: inline-grid; width: 22px; height: 22px; }
+  .proposal-appearance-trigger-art { grid-area: 1 / 1; display: inline-grid; visibility: hidden; }
+  .proposal-appearance[data-preference="light"] [data-theme-trigger-art="light"],
+  .proposal-appearance[data-preference="dark"] [data-theme-trigger-art="dark"],
+  .proposal-appearance[data-preference="system"] [data-theme-trigger-art="system"] { visibility: visible; }
   .proposal-appearance-chevron { width: 14px; height: 14px; transform: rotate(-90deg); }
   .proposal-appearance[data-open="true"] .proposal-appearance-chevron { transform: rotate(90deg); }
   .proposal-appearance-menu {
@@ -172,17 +174,13 @@ import ChevronRight from "./icons/ChevronRight.astro";
     cursor: pointer;
   }
   .proposal-appearance-option[aria-checked="true"] { background: color-mix(in srgb, currentColor 6%, var(--proposal-paper)); }
-  .proposal-appearance-option-icon { width: 16px; height: 16px; opacity: 0.65; transform: scale(0.92); }
-  .proposal-appearance-option[aria-checked="true"] .proposal-appearance-option-icon,
-  .proposal-appearance-option:focus-visible .proposal-appearance-option-icon { opacity: 1; transform: scale(1); }
   .proposal-appearance[data-interaction="pointer"] .proposal-appearance-trigger:active { transform: scale(0.98); }
   .proposal-appearance-check { margin-left: auto; opacity: 0; }
   .proposal-appearance-option[aria-checked="true"] .proposal-appearance-check { opacity: 1; }
-  .proposal-appearance[data-interaction="pointer"] :is(.proposal-appearance-icon, .proposal-appearance-option-icon, .proposal-appearance-chevron, .proposal-appearance-trigger) { transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms cubic-bezier(0.16, 1, 0.3, 1); }
+  .proposal-appearance[data-interaction="pointer"] :is(.proposal-appearance-chevron, .proposal-appearance-trigger) { transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms cubic-bezier(0.16, 1, 0.3, 1); }
   .proposal-appearance[data-interaction="pointer"] .proposal-appearance-menu { transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 160ms; }
   .proposal-appearance[data-interaction="pointer"][data-open="true"] .proposal-appearance-menu { transition-delay: 0s; }
   @media (hover: hover) and (pointer: fine) {
-    .proposal-appearance-option:hover .proposal-appearance-option-icon { opacity: 1; transform: scale(1); }
     .proposal-appearance-trigger:hover, .proposal-appearance-option:hover { background: color-mix(in srgb, currentColor 9%, var(--proposal-paper)); }
   }
   .proposal-pause {
@@ -203,7 +201,7 @@ import ChevronRight from "./icons/ChevronRight.astro";
   @media (prefers-reduced-motion: reduce) {
     html[data-proposal] :is(.proposal-grain, .proposal-film, .proposal-particles) { animation: none; }
     .proposal-particles { display: none; }
-    .proposal-appearance :is(.proposal-appearance-icon, .proposal-appearance-option-icon, .proposal-appearance-chevron, .proposal-appearance-trigger, .proposal-appearance-menu) { transition: none !important; }
+    .proposal-appearance :is(.proposal-appearance-chevron, .proposal-appearance-trigger, .proposal-appearance-menu) { transition: none !important; }
   }
 
   /* Every proposal retains the complete, immediate 2px edge. */

@@ -1,7 +1,7 @@
 ---
 import "@fontsource-variable/jetbrains-mono";
 import PortfolioTypography from "../components/PortfolioTypography.astro";
-import AppearanceDemoIcon from "../components/AppearanceDemoIcon.astro";
+import AppearanceIcon from "../components/AppearanceIcon.astro";
 
 const themes = [
   { kind: "light", label: "Light" },
@@ -51,13 +51,13 @@ const studies = [
           </fieldset>
             <div class="menu-anchor">
             <button class="menu-trigger" type="button" data-theme-trigger aria-haspopup="menu" aria-expanded="false" aria-controls="appearance-study-menu" aria-label="Appearance: System">
-              {themes.map(({ kind }) => <span data-trigger-art={kind} hidden={kind !== "system"}>{kind === "dark" ? moonOptions.map(({ value }) => <span data-moon-art={value} hidden={value !== "cloud"}><AppearanceDemoIcon id={`trigger-dark-${value}`} kind={kind} moonVariant={value} state="active" /></span>) : <AppearanceDemoIcon id={`trigger-${kind}`} kind={kind} state="active" />}</span>)}
+              {themes.map(({ kind }) => <span data-trigger-art={kind} hidden={kind !== "system"}>{kind === "dark" ? moonOptions.map(({ value }) => <span data-moon-art={value} hidden={value !== "cloud"}><AppearanceIcon id={`trigger-dark-${value}`} kind={kind} moonVariant={value} state="active" /></span>) : <AppearanceIcon id={`trigger-${kind}`} kind={kind} state="active" />}</span>)}
               <span data-trigger-label>System</span>
               <span class="chevron" aria-hidden="true">⌄</span>
             </button>
             <div id="appearance-study-menu" class="appearance-menu" role="menu" aria-label="Appearance" data-theme-menu hidden>
               {themes.map(({ kind, label }) => <button type="button" class="menu-choice" role="menuitemradio" aria-checked={kind === "system" ? "true" : "false"} data-theme-choice={kind} tabindex="-1">
-                {kind === "dark" ? moonOptions.map(({ value }) => <span data-moon-art={value} hidden={value !== "cloud"}><AppearanceDemoIcon id={`menu-dark-${value}`} kind={kind} moonVariant={value} /></span>) : <AppearanceDemoIcon id={`menu-${kind}`} kind={kind} state={kind === "system" ? "active" : "idle"} />}
+                {kind === "dark" ? moonOptions.map(({ value }) => <span data-moon-art={value} hidden={value !== "cloud"}><AppearanceIcon id={`menu-dark-${value}`} kind={kind} moonVariant={value} /></span>) : <AppearanceIcon id={`menu-${kind}`} kind={kind} state={kind === "system" ? "active" : "idle"} />}
                 <span>{label}</span>
                 <span class="selected-mark" aria-hidden="true">✓</span>
               </button>)}
@@ -68,7 +68,7 @@ const studies = [
         </div>
         <figure class="live-stage">
           <div class="stage-art">
-            {themes.map(({ kind }) => <span data-stage-art={kind} hidden={kind !== "system"}>{kind === "dark" ? moonOptions.map(({ value }) => <span data-moon-art={value} hidden={value !== "cloud"}><AppearanceDemoIcon id={`stage-dark-${value}`} kind={kind} moonVariant={value} state="active" size={48} /></span>) : <AppearanceDemoIcon id={`stage-${kind}`} kind={kind} state="active" size={48} />}</span>)}
+            {themes.map(({ kind }) => <span data-stage-art={kind} hidden={kind !== "system"}>{kind === "dark" ? moonOptions.map(({ value }) => <span data-moon-art={value} hidden={value !== "cloud"}><AppearanceIcon id={`stage-dark-${value}`} kind={kind} moonVariant={value} state="active" size={48} /></span>) : <AppearanceIcon id={`stage-${kind}`} kind={kind} state="active" size={48} />}</span>)}
           </div>
           <figcaption><span class="stage-label" data-stage-label>System · Active</span><span class="stage-note" data-system-note data-device-note>Device: Light. Idle: Dark → Active: Light.</span></figcaption>
         </figure>
@@ -78,8 +78,8 @@ const studies = [
         <div class="section-heading"><h2 id="artwork-heading" data-type="section">Compare at 22 px</h2><span data-type="metadata">Idle → Active</span></div>
         {studies.map((study, index) => <article class="artwork-row" aria-labelledby={`${study.key}-heading`}>
           <div class="row-heading"><span class="row-number" data-type="metadata">0{index + 1}</span><h3 id={`${study.key}-heading`} data-type="entry">{study.label}</h3></div>
-          <figure class="artwork"><AppearanceDemoIcon id={`${study.key}-idle`} kind={study.kind} moonVariant={"moonVariant" in study ? study.moonVariant : "cloud"} size={22} fixed /><figcaption><span>Idle</span><small>{study.idle}</small></figcaption></figure>
-          <figure class="artwork" data-replay-art={study.key}><AppearanceDemoIcon id={`${study.key}-active`} kind={study.kind} moonVariant={"moonVariant" in study ? study.moonVariant : "cloud"} state="active" size={22} /><figcaption><span data-replay-label>Active</span><small>{study.active}</small></figcaption></figure>
+          <figure class="artwork"><AppearanceIcon id={`${study.key}-idle`} kind={study.kind} moonVariant={"moonVariant" in study ? study.moonVariant : "cloud"} size={22} fixed /><figcaption><span>Idle</span><small>{study.idle}</small></figcaption></figure>
+          <figure class="artwork" data-replay-art={study.key}><AppearanceIcon id={`${study.key}-active`} kind={study.kind} moonVariant={"moonVariant" in study ? study.moonVariant : "cloud"} state="active" size={22} /><figcaption><span data-replay-label>Active</span><small>{study.active}</small></figcaption></figure>
           <button class="replay" type="button" data-replay={study.key} aria-label={`Replay ${study.label} icon transition`}>Replay <span aria-hidden="true">↗</span></button>
         </article>)}
       </section>

@@ -9,7 +9,7 @@ const blurrableSource = readFileSync(new URL("../src/components/Blurrable.astro"
 const compiledBlurrable = new Bun.Transpiler({ loader: "ts" }).transformSync(blurrableSource);
 const settle = () => new Promise((resolve) => setTimeout(resolve, 5));
 
-async function withMenu(run) {
+async function withMenu(run, config) {
   const keys = ["document", "window", "HTMLElement", "Element", "customElements"];
   const originals = keys.map((key) => Object.getOwnPropertyDescriptor(globalThis, key));
   const document = Object.assign(new EventTarget(), { activeElement: null, querySelector: () => null });
@@ -70,7 +70,7 @@ async function withMenu(run) {
   };
   try {
     keys.forEach((name) => Object.defineProperty(globalThis, name, { value: values[name], configurable: true, writable: true }));
-    initializeAppearanceMenu(controls, lifetime.signal);
+    initializeAppearanceMenu(controls, lifetime.signal, config);
     // EventTarget has no DOM tree: this registration order represents the
     // document capture controller running before the actual spoiler bubble listener.
     new Function("registerEscapeDismissal", compiledBlurrable)(registerEscapeDismissal);
@@ -226,4 +226,33 @@ test("shared lifetime abort closes owned UI and releases all menu listeners", as
     expect(down.defaultPrevented).toBe(false);
     expect(click(outside).defaultPrevented).toBe(false);
   });
+});
+
+
+test("optional persistent selection accepts already-projected checks and preserves existing dismissal behavior", async () => {
+  await withMenu(async ({ controls, trigger, items, menu, document, window, click, key, spoilerButton, Element }) => {
+    click(spoilerButton); click(trigger);
+    for (const item of items) {
+      // preference authority has already projected aria-checked before the helper runs
+      items.forEach((candidate) => candidate.setAttribute("aria-checked", String(candidate === item)));
+      click(item);
+      expect(controls.dataset.open).toBe("true");
+      expect(menu.inert).toBe(false);
+      expect(document.activeElement).toBe(item);
+      expect(items.map((candidate) => candidate.tabIndex)).toEqual(items.map((candidate) => candidate === item ? 0 : -1));
+      expect(window.scrollY).toBe(500);
+      expect(spoilerButton.dataset.status).toBe("active");
+    }
+    key("Escape"); await settle();
+    expect(menu.inert).toBe(true);
+    expect(document.activeElement).toBe(trigger);
+    expect(spoilerButton.dataset.status).toBe("active");
+    click(trigger); key("Tab", document.activeElement, { shiftKey: true });
+    expect(menu.inert).toBe(true);
+    click(trigger);
+    const outside = new Element();
+    expect(click(outside).defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(trigger);
+    expect(spoilerButton.dataset.status).toBe("active");
+  }, { keepOpenOnSelection: true });
 });

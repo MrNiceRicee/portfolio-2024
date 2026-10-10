@@ -1,6 +1,6 @@
-Appearance demo icon sources
+Shared appearance icon sources
 
-The artwork in src/components/AppearanceDemoIcon.astro is adapted from the
+The artwork in src/components/AppearanceIcon.astro is adapted from the
 following official Lucide SVGs at commit:
 70562c1ee1c4fdcf736fe97bc893fb8511927934
 https://github.com/lucide-icons/lucide/tree/70562c1ee1c4fdcf736fe97bc893fb8511927934/icons
@@ -28,7 +28,7 @@ https://github.com/pqoqubbw/icons/tree/cf847c1f6ba0e1f0695e2ded6bf6d86df0a09232/
 sun-medium.tsx, sun.tsx, moon.tsx, monitor-cog.tsx
 MIT, Copyright (c) 2024-2026 pqoqubbw. Full notice is retained in LICENSE.
 
-This demo uses always-mounted native SVG geometry in one grid cell. Its local
+The homepage and demo use always-mounted native SVG geometry in one grid cell. Its local
 stroke, cloud, mask and screen-fill transitions use 280ms CSS motion; it does not
 execute or install the stock React/Motion animation components. Keyboard
 selection and reduced-motion final states are immediate. The LICENSE is retained
