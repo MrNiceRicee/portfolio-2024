@@ -1,0 +1,143 @@
+---
+import "@fontsource-variable/jetbrains-mono";
+import PortfolioTypography from "../components/PortfolioTypography.astro";
+import AppearanceDemoIcon from "../components/AppearanceDemoIcon.astro";
+
+const themes = [
+  { kind: "light", label: "Light", idle: "Sun at rest", active: "Full daylight" },
+  { kind: "dark", label: "Dark", idle: "Quiet crescent", active: "A little night sky" },
+  { kind: "system", label: "System", idle: "Sleeping screen", active: "Both sides, lit" },
+] as const;
+---
+<!doctype html>
+<html lang="en" data-proposal data-appearance-demo>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content="An isolated study of idle and active appearance icons." />
+    <title>Appearance study · Josh's corner</title>
+    <PortfolioTypography />
+    <script is:inline>
+      const preview = new URLSearchParams(location.search).get("theme");
+      const choice = preview === "light" || preview === "dark" ? preview : "system";
+      document.documentElement.dataset.demoTheme = choice;
+      document.documentElement.classList.toggle("dark", choice === "dark" || (choice === "system" && matchMedia("(prefers-color-scheme: dark)").matches));
+    </script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <a class="back" href="/">← Back to portfolio</a>
+        <p class="eyebrow" data-type="metadata">Control studies / 01</p>
+        <h1 data-type="name">Appearance study</h1>
+        <p data-type="prose">A proposal. The homepage icons are unchanged.</p>
+      </header>
+
+      <section class="live-study" aria-labelledby="live-heading">
+        <div class="live-copy">
+          <h2 id="live-heading" data-type="section">Try the switch</h2>
+          <p data-type="prose">Open the menu, hover an option, or choose an appearance. Replay the drawings below to see the handoff.</p>
+          <div class="demo-controls" data-demo-controls data-open="false" data-interaction="pointer">
+            <button class="menu-trigger" type="button" data-theme-trigger aria-haspopup="menu" aria-expanded="false" aria-controls="appearance-study-menu" aria-label="Appearance: System">
+              {themes.map(({ kind }) => <span data-trigger-art={kind} hidden={kind !== "system"}><AppearanceDemoIcon kind={kind} state="active" /></span>)}
+              <span data-trigger-label>System</span>
+              <span class="chevron" aria-hidden="true">⌄</span>
+            </button>
+            <div id="appearance-study-menu" class="appearance-menu" role="menu" aria-label="Appearance" data-theme-menu hidden>
+              {themes.map(({ kind, label }) => <button type="button" class="menu-choice" role="menuitemradio" aria-checked={kind === "system" ? "true" : "false"} data-theme-choice={kind} tabindex="-1">
+                <AppearanceDemoIcon kind={kind} state={kind === "system" ? "active" : "idle"} />
+                <span>{label}</span>
+                <span class="selected-mark" aria-hidden="true">✓</span>
+              </button>)}
+            </div>
+          </div>
+          <p class="menu-note" data-type="metadata">22 px artwork / temporary theme preview</p>
+        </div>
+        <figure class="live-stage">
+          <div class="stage-art">
+            {themes.map(({ kind }) => <span data-stage-art={kind} hidden={kind !== "system"}><AppearanceDemoIcon kind={kind} state="active" size={72} /></span>)}
+          </div>
+          <figcaption><span class="stage-label" data-stage-label>System · Active</span><span class="stage-note" data-system-note>Follows your device</span></figcaption>
+        </figure>
+      </section>
+
+      <section class="artwork-study" aria-labelledby="artwork-heading">
+        <div class="section-heading"><h2 id="artwork-heading" data-type="section">Two drawings, one intention</h2><span data-type="metadata">Idle → Active</span></div>
+        {themes.map(({ kind, label, idle, active }, index) => <article class="artwork-row" aria-labelledby={`${kind}-heading`}>
+          <div class="row-heading"><span class="row-number" data-type="metadata">0{index + 1}</span><h3 id={`${kind}-heading`} data-type="entry">{label}</h3></div>
+          <figure class="artwork"><AppearanceDemoIcon kind={kind} size={48} fixed /><figcaption><span>Idle</span><small>{idle}</small></figcaption></figure>
+          <figure class="artwork" data-replay-art={kind}><AppearanceDemoIcon kind={kind} state="active" size={48} /><figcaption><span data-replay-label>Active</span><small>{active}</small></figcaption></figure>
+          <button class="replay" type="button" data-replay={kind} aria-label={`Replay ${label} icon transition`}>Replay <span aria-hidden="true">↗</span></button>
+        </article>)}
+      </section>
+
+      <footer>
+        <p data-type="metadata">A small shift, then a new drawing. 240 ms, once.</p>
+        <p data-type="prose">Keyboard navigation changes states immediately. Reduced motion shows the final drawing without movement.</p>
+        <p class="status" role="status" aria-live="polite" aria-atomic="true" data-demo-status>Preview: System. Active drawing shown.</p>
+      </footer>
+      <noscript><p>The six drawings are visible above. Enable JavaScript to try the menu and replay.</p></noscript>
+    </main>
+    <script>
+      import { initializeAppearanceDemo } from "../scripts/appearanceDemo";
+      initializeAppearanceDemo();
+    </script>
+  </body>
+</html>
+
+<style>
+  :global(html[data-appearance-demo]) { --demo-surface: #fafaf9; }
+  :global(html.dark[data-appearance-demo]) { --demo-surface: #0c0a09; }
+  body { margin: 0; background: var(--demo-surface); }
+  main { max-width: 880px; margin: 0 auto; padding: 32px clamp(20px, 5vw, 48px) 48px; }
+  button, a { color: inherit; }
+  button { font: inherit; border: 1px solid currentColor; background: transparent; cursor: pointer; min-height: 44px; transition: transform 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+  button:active { transform: scale(0.97); }
+  :is(button, a):focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+  a { display: inline-flex; align-items: center; min-height: 44px; }
+  .back { font-size: 0.875rem; text-decoration-thickness: 1px; }
+  .eyebrow { margin: 32px 0 12px; }
+  header > p:last-child { margin: 12px 0 0; }
+  .live-study { display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; padding: 32px 0; margin-top: 32px; border-block: 1px solid color-mix(in srgb, currentColor 25%, transparent); }
+  h2, h3, p, figure { margin: 0; }
+  .live-copy > p { margin-top: 12px; max-width: 38ch; }
+  .demo-controls { position: relative; width: max-content; margin-top: 24px; z-index: 1; }
+  .menu-trigger { min-width: 156px; display: flex; align-items: center; gap: 12px; padding: 10px 12px; }
+  .chevron { margin-left: auto; line-height: 1; }
+  .appearance-menu { position: absolute; inset: calc(100% + 8px) auto auto 0; width: 208px; max-width: calc(100vw - 40px); padding: 4px; box-sizing: border-box; border: 1px solid currentColor; background: var(--demo-surface); }
+  [data-open="false"] .appearance-menu { display: none; }
+  .menu-choice { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px 12px; border: 0; }
+  .selected-mark { margin-left: auto; visibility: hidden; }
+  [aria-checked="true"] .selected-mark { visibility: visible; }
+  .menu-note { font-size: 0.75rem !important; }
+  .live-stage { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; min-height: 188px; }
+  .stage-art { min-height: 80px; display: grid; align-items: center; }
+  .live-stage figcaption { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.875rem; }
+  .stage-label { font-weight: 600; }
+  .stage-note { font-size: 0.75rem; min-height: 1.5em; }
+  .artwork-study { margin-top: 40px; }
+  .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; padding-bottom: 24px; }
+  .section-heading > span { white-space: nowrap; font-size: 0.75rem; }
+  .artwork-row { display: grid; grid-template-columns: 1.1fr 1fr 1fr auto; align-items: center; column-gap: 24px; padding: 24px 0; border-top: 1px solid color-mix(in srgb, currentColor 25%, transparent); }
+  .row-heading { display: flex; align-items: baseline; gap: 12px; }
+  .row-number { font-size: 0.75rem; }
+  .artwork { display: flex; flex-direction: column; gap: 12px; }
+  .artwork figcaption { display: flex; flex-direction: column; gap: 4px; font-size: 0.875rem; }
+  .artwork small { font-size: 0.75rem; }
+  .replay { font-size: 0.875rem; display: inline-flex; align-items: center; gap: 12px; padding: 8px 12px; }
+  footer { border-top: 1px solid color-mix(in srgb, currentColor 25%, transparent); padding-top: 24px; margin-top: 8px; display: flex; flex-direction: column; gap: 12px; }
+  footer [data-type="prose"] { font-size: 0.875rem; }
+  .status { font-size: 0.875rem; min-height: 1.6em; }
+  :global([hidden]) { display: none !important; }
+  @media (hover: hover) and (pointer: fine) { button:hover { background: color-mix(in srgb, currentColor 6%, transparent); } }
+  @media (max-width: 620px) {
+    .live-study { grid-template-columns: 1fr; gap: 24px; }
+    .live-stage { min-height: 152px; flex-direction: row; justify-content: flex-start; gap: 32px; }
+    .live-stage figcaption { align-items: flex-start; }
+    .section-heading { flex-direction: column; gap: 8px; }
+    .artwork-row { grid-template-columns: 1fr 1fr; gap: 24px 16px; }
+    .row-heading { grid-column: 1 / -1; }
+    .replay { grid-column: 1 / -1; justify-self: start; }
+  }
+  @media (prefers-reduced-motion: reduce) { button { transition: none; } button:active { transform: none; } }
+</style>
