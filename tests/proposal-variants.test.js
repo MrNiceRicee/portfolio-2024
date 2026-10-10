@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { getProposalConfig, getProposalFilmStatus, paperVariants } from "../src/scripts/proposalConfig";
+import { getProposalConfig, paperVariants } from "../src/scripts/proposalConfig";
 import { FilmParticle } from "../src/scripts/proposalParticles";
 
 test("paper and film allowlists are independent on study and portfolio routes", () => {
@@ -8,10 +8,29 @@ test("paper and film allowlists are independent on study and portfolio routes", 
     expect([config.surface, config.film, config.theme]).toEqual(["fibers", "used", "dark"]);
     expect(config.enabled).toBe(route === "/");
     const defaults = getProposalConfig(new URL(`https://example.com${route}?surface=constructor&film=__proto__`));
-    expect([defaults.surface, defaults.film]).toEqual(["creased", "original"]);
+    expect([defaults.surface, defaults.film]).toEqual(["fibers", "original"]);
   }
   expect(getProposalConfig(new URL("https://example.com/?surface=fibers")).film).toBe("original");
-  expect(getProposalConfig(new URL("https://example.com/?film=quiet")).surface).toBe("creased");
+  expect(getProposalConfig(new URL("https://example.com/?film=quiet")).surface).toBe("fibers");
+});
+test("the actual homepage defaults to the selected combination and system theme", () => {
+  const config = getProposalConfig(new URL("https://example.com/"));
+  expect(config.enabled).toBe(true);
+  expect([config.surface, config.film, config.focus]).toEqual(["fibers", "original", "b"]);
+  expect(config.theme).toBeUndefined();
+  expect(config.fallback).toBe(false);
+  for (const route of ["/assets", "/assets/", "/proposals"]) {
+    expect(getProposalConfig(new URL(`https://example.com${route}?proposal=1`)).enabled).toBe(false);
+  }
+});
+test("only explicit valid theme queries override system preference", () => {
+  for (const theme of ["light", "dark"]) {
+    expect(getProposalConfig(new URL(`https://example.com/?theme=${theme}`)).theme).toBe(theme);
+  }
+  for (const theme of ["", "system", "unknown", "constructor"]) {
+    expect(getProposalConfig(new URL(`https://example.com/?theme=${theme}`)).theme).toBeUndefined();
+  }
+  expect(getProposalConfig(new URL("https://example.com/?fallback=1")).fallback).toBe(true);
 });
 test("fiber-only paper removes each crease mechanism, leaving baseline intact", () => {
   expect([paperVariants.fibers.folds, paperVariants.fibers.wrinkles, paperVariants.fibers.crumples]).toEqual([0, 0, 0]);
@@ -26,23 +45,4 @@ test("retired and unknown film values safely return the original control", () =>
   for (const film of ["hairlines", "aged", "weave", "constructor", "__proto__", "unknown"]) {
     expect(getProposalConfig(new URL(`https://example.com/?proposal=1&film=${film}`)).film).toBe("original");
   }
-});
-
-test("study status explains motion eligibility without overriding preferences", () => {
-  const running = { enabled: true, plain: false, reason: "running" };
-  expect(getProposalFilmStatus(running)).toContain("Film running");
-  expect(getProposalFilmStatus({ ...running, reason: "user-paused" })).toContain("Resume film");
-  expect(getProposalFilmStatus({ ...running, reason: "loading" })).toContain("Film waiting");
-  expect(getProposalFilmStatus({ ...running, reason: undefined })).toContain("Film waiting");
-  expect(getProposalFilmStatus({ ...running, reason: "constructor" })).toContain("Film waiting");
-  expect(getProposalFilmStatus({ ...running, reason: "fallback" })).toContain("static surface fallback");
-  expect(getProposalFilmStatus({ ...running, reason: "reduced-motion" })).toContain("Reduced motion");
-  expect(getProposalFilmStatus({ ...running, reason: "forced-colors" })).toContain("film effects are hidden");
-  expect(getProposalFilmStatus({ ...running, reason: "offscreen" })).toContain("Bring the preview into view");
-  expect(getProposalFilmStatus({ ...running, reason: "hidden" })).toContain("page is visible again");
-  expect(getProposalFilmStatus({ ...running, reason: "unsupported" })).toContain("Visibility detection is unavailable");
-  expect(getProposalFilmStatus({ ...running, reason: "unsupported" })).not.toContain("Resume");
-  expect(getProposalFilmStatus({ ...running, enabled: false })).toContain("Reapply the comparison");
-  expect(getProposalFilmStatus({ ...running, enabled: false })).not.toContain("Film running");
-  expect(getProposalFilmStatus({ ...running, plain: true })).toContain("Plain surface");
 });

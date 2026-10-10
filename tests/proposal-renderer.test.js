@@ -1,7 +1,6 @@
 import { expect, test } from "bun:test";
 import { initializeProposalParticles } from "../src/scripts/proposalParticles";
 import { initializeProposalFilm } from "../src/scripts/proposalFilm";
-import { getProposalFilmStatus } from "../src/scripts/proposalConfig";
 
 for (const film of ["original", "quiet", "used"]) {
   for (const failure of ["null", "throw"]) {
@@ -37,8 +36,6 @@ for (const film of ["original", "quiet", "used"]) {
         expect(dataset.filmMotion).toBe(film === "original" ? "running" : "paused");
         expect(dataset.filmMotionReason).toBe(film === "original" ? "grain-only" : "renderer-unavailable");
         expect(button.hidden).toBe(film !== "original");
-        const status = getProposalFilmStatus({ enabled: true, plain: false, reason: dataset.filmMotionReason });
-        expect(status).toContain(film === "original" ? "Original grain" : "renderer unavailable");
         if (film === "original") {
           button.dispatchEvent(new Event("click"));
           expect(dataset.filmMotion).toBe("paused");

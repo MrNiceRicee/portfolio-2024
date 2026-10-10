@@ -135,7 +135,6 @@ import grain from "../assets/noise.svg";
 </style>
 
 <script>
-  // the ordinary homepage never fetches the proposal runtime
   if (document.documentElement.hasAttribute("data-proposal")) {
     const lifetime = new AbortController();
     window.addEventListener("pagehide", (event) => {

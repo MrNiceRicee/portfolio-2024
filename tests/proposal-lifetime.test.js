@@ -25,6 +25,7 @@ function probe(stage, rejected = false, persisted = false) {
     const intersections = [];
     Object.assign(globalThis, { document, window,
       matchMedia: () => Object.assign(new EventTarget(), { matches: false }),
+      MutationObserver: class { observe() {} disconnect() {} },
       IntersectionObserver: class { constructor(callback) { intersections.push(callback); } observe() {} disconnect() {} },
       requestAnimationFrame: callback => { frames.set(++next, callback); return next; },
       cancelAnimationFrame: id => frames.delete(id),

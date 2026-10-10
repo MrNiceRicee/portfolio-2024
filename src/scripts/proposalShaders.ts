@@ -10,6 +10,7 @@ export async function initializeProposalShaders(signal: AbortSignal) {
   const host = document.querySelector<HTMLElement>("[data-proposal-paper]");
   if (signal.aborted || !host || root.hasAttribute("data-fallback")) return;
   let paper: ShaderMount | undefined;
+  let themeObserver: MutationObserver | undefined;
   let cancelled = false;
 
   function setStatus(status: "loading" | "ready" | "fallback") {
@@ -19,6 +20,7 @@ export async function initializeProposalShaders(signal: AbortSignal) {
   }
 
   function fallback() {
+    themeObserver?.disconnect();
     paper?.dispose();
     paper = undefined;
     host?.replaceChildren();
@@ -41,7 +43,7 @@ export async function initializeProposalShaders(signal: AbortSignal) {
     if (!noise) throw new Error("Paper noise texture unavailable");
     await noise.decode();
     if (cancelled || signal.aborted) return;
-    const dark = root.classList.contains("dark");
+    let dark = root.classList.contains("dark");
     const surface = paperVariants[getPaperVariant(root.dataset.surface)];
     const paperColor = getShaderColorFromString(dark ? "#191713" : "#f4f0e6");
     const uniforms = {
@@ -63,6 +65,21 @@ export async function initializeProposalShaders(signal: AbortSignal) {
     } satisfies PaperTextureUniforms & { u_imageAspectRatio: number };
     paper = new ShaderMount(host, paperTextureFragmentShader, uniforms,
       { alpha: false, antialias: false, preserveDrawingBuffer: false }, 0, 0, 1, 600_000);
+    themeObserver = new MutationObserver(() => {
+      const nextDark = root.classList.contains("dark");
+      if (cancelled || signal.aborted || !paper || nextDark === dark) return;
+      dark = nextDark;
+      const color = getShaderColorFromString(dark ? "#191713" : "#f4f0e6");
+      try {
+        paper.setUniforms({
+          u_colorBack: color, u_colorPaper: color,
+          u_colorShadow: getShaderColorFromString(dark ? "#40382d" : "#c5bcae"),
+        });
+      } catch {
+        fallback();
+      }
+    });
+    themeObserver.observe(root, { attributes: true, attributeFilter: ["class"] });
     paper.canvasElement.setAttribute("aria-hidden", "true");
     paper.canvasElement.addEventListener("webglcontextlost", fallback, { once: true });
     // let the vendor resize observer establish the viewport resolution first

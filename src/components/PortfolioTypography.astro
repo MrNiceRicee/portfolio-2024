@@ -1,0 +1,111 @@
+<style is:global>
+  @font-face {
+    font-family: "IBM Plex Sans";
+    font-style: normal;
+    font-weight: 100 700;
+    font-stretch: 100%;
+    font-display: swap;
+    src: url("/fonts/study/ibm-plex-sans-latin-variable.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+  html[data-proposal] {
+    --portfolio-font: "IBM Plex Sans", Arial, sans-serif;
+    --portfolio-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --portfolio-paper: #f4f0e6;
+    --portfolio-ink: #3c342e;
+    --portfolio-muted: #6b5745;
+    --portfolio-leading: 1.6;
+    --portfolio-tracking: 0;
+  }
+  html.dark[data-proposal] {
+    --portfolio-paper: #191713;
+    --portfolio-ink: #e8dfcc;
+    --portfolio-muted: #c5b79e;
+    --portfolio-leading: 1.7;
+    --portfolio-tracking: 0.005em;
+  }
+  html[data-proposal] body,
+  html[data-proposal] :is([data-portfolio-hero], [data-portfolio-section], [data-footer-content]) {
+    font-family: var(--portfolio-font);
+    font-size: 1.0625rem;
+    font-style: normal;
+    font-weight: 400;
+    font-stretch: 100%;
+    font-synthesis: none;
+    font-kerning: normal;
+    line-height: var(--portfolio-leading);
+    letter-spacing: var(--portfolio-tracking);
+    color: var(--portfolio-ink);
+  }
+  html[data-proposal] [data-type="name"] {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  html[data-proposal] [data-type="section"] {
+    font-size: 1.375rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  html[data-proposal] [data-type="entry"] {
+    font-family: var(--portfolio-font);
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+  html[data-proposal] [data-type="secondary"] {
+    font-weight: 400;
+  }
+  html[data-proposal] [data-type="prose"] {
+    font-family: var(--portfolio-font);
+    font-size: 1.0625rem;
+    font-weight: 400;
+    line-height: var(--portfolio-leading);
+    letter-spacing: var(--portfolio-tracking);
+    max-width: 65ch;
+  }
+  html[data-proposal] [data-type="metadata"],
+  html[data-proposal] .proposal-pause {
+    font-family: var(--portfolio-mono);
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  html[data-proposal] :is([data-portfolio-main], [data-portfolio-footer]) :where(.text-zinc-500) {
+    color: var(--portfolio-muted);
+  }
+  html[data-proposal] [data-portfolio-hero] > [data-type="metadata"] {
+    margin-top: 0.5rem;
+  }
+  html[data-proposal] [data-experience-heading] {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  html[data-proposal] summary > [data-type="metadata"] {
+    display: block;
+    margin-left: 0;
+    margin-top: 0.25rem;
+  }
+  html[data-proposal] [data-projects] :is([data-type="prose"], [data-type="metadata"]) {
+    margin-left: 0;
+  }
+  html[data-proposal] [data-portfolio-footer] [data-type="prose"] {
+    margin-top: 0.5rem;
+  }
+  html[data-proposal] a {
+    text-underline-offset: 0.2em;
+  }
+  html[data-proposal] ::selection {
+    color: var(--portfolio-paper);
+    background: var(--portfolio-ink);
+  }
+</style>
