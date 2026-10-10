@@ -42,7 +42,7 @@ const studies = [
       <section class="live-study" aria-labelledby="live-heading">
         <div class="live-copy">
           <h2 id="live-heading" data-type="section">Try the switch</h2>
-          <p data-type="prose">Choose an appearance to see its 22 px icon change. The menu stays open; choose again to replay.</p>
+          <p data-type="prose">Choose an appearance to see its 22 px icon change. The menu stays open; use Replay below to repeat a drawing.</p>
           <p class="motion-status" data-type="metadata" data-motion-status role="status">Checking motion preference…</p>
           <div class="demo-controls" data-demo-controls data-open="false" data-interaction="pointer">
           <fieldset class="moon-options">
@@ -102,11 +102,10 @@ const studies = [
 <style>
   :global(html[data-appearance-demo]) { --demo-surface: #fafaf9; }
   :global(html.dark[data-appearance-demo]) { --demo-surface: #0c0a09; }
-  body { margin: 0; background: var(--demo-surface); }
+  body { --appearance-surface: var(--demo-surface); margin: 0; background: var(--demo-surface); }
   main { max-width: 880px; margin: 0 auto; padding: 16px clamp(20px, 5vw, 48px) 48px; }
   button, a { color: inherit; }
-  button { font: inherit; border: 1px solid currentColor; background: transparent; cursor: pointer; min-height: 44px; }
-  button:active { background: color-mix(in srgb, currentColor 10%, transparent); }
+  button { --appearance-surface: var(--demo-surface); font: inherit; border: 1px solid currentColor; background: var(--appearance-surface); cursor: pointer; min-height: 44px; }
   :is(button, a):focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
   a { display: inline-flex; align-items: center; min-height: 44px; }
   .back { font-size: 0.875rem; text-decoration-thickness: 1px; }
@@ -151,7 +150,8 @@ const studies = [
   footer [data-type="prose"] { font-size: 0.875rem; }
   .status { font-size: 0.875rem; min-height: 1.6em; }
   :global([hidden]) { display: none !important; }
-  @media (hover: hover) and (pointer: fine) { button:hover { background: color-mix(in srgb, currentColor 6%, transparent); } }
+  @media (hover: hover) and (pointer: fine) { button:hover { --appearance-surface: color-mix(in srgb, currentColor 6%, var(--demo-surface)); } }
+  button:active { --appearance-surface: color-mix(in srgb, currentColor 10%, var(--demo-surface)); }
   @media (max-width: 620px) {
     .live-study { grid-template-columns: 1fr; gap: 24px; }
     .live-stage { min-height: 80px; flex-direction: row; justify-content: flex-start; gap: 32px; }

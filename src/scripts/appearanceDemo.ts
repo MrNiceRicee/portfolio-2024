@@ -102,24 +102,19 @@ export function initializeAppearanceDemo() {
   const visibleIcons = (element: HTMLElement) => Array.from(element.querySelectorAll<HTMLElement>("[data-demo-icon]"))
     .filter((icon) => icon.dataset.demoIcon !== "dark" || icon.dataset.moonVariant === moonVariant);
 
-  const selectTheme = (theme: Theme, keyboard: boolean) => {
-    const repeat = theme === selected;
-    cancelMotion();
-    selected = theme;
+  const syncTheme = (keyboard: boolean, animateLive = false) => {
     controls.dataset.interaction = keyboard ? "keyboard" : "pointer";
     updateMotionStatus(keyboard ? "keyboard" : "selection");
     applyTheme();
-    const label = themeLabel(theme);
+    const label = themeLabel(selected);
     triggerLabel.textContent = label;
     trigger.setAttribute("aria-label", `Appearance: ${label}`);
     stageLabel.textContent = `${label} · Active`;
     status.textContent = `Preview: ${label}. Active drawing shown.${selected === "system" ? " Follows your device." : ""}`;
-    const menuIcons: HTMLElement[] = [];
     choices.forEach((choice) => {
       const active = choice.dataset.themeChoice === selected;
       choice.setAttribute("aria-checked", String(active));
       choice.querySelectorAll<HTMLElement>("[data-demo-icon]").forEach((icon) => setArt(icon, active, keyboard));
-      if (active && repeat) menuIcons.push(...visibleIcons(choice));
     });
     const liveIcons: HTMLElement[] = [];
     document.querySelectorAll<HTMLElement>("[data-trigger-art], [data-stage-art]").forEach((art) => {
@@ -128,10 +123,26 @@ export function initializeAppearanceDemo() {
       art.querySelectorAll<HTMLElement>("[data-demo-icon]").forEach((icon) => setArt(icon, true, true));
       if (active) liveIcons.push(...visibleIcons(art));
     });
-    if (!keyboard) replayArt([...menuIcons, ...liveIcons]);
+    if (animateLive && !keyboard) replayArt(liveIcons);
+  };
+  const selectTheme = (theme: Theme, keyboard: boolean) => {
+    if (theme === selected) return;
+    cancelMotion();
+    selected = theme;
+    syncTheme(keyboard, true);
   };
 
   // capture owns demo selection; the shared helper still owns navigation and dismissal
+  const isSelectedChoice = (target: EventTarget | null) => choices.some((choice) =>
+    choice.dataset.themeChoice === selected && choice.contains(target as Node | null));
+  // run before the shared pointer handler without canceling native button focus
+  document.addEventListener("pointerdown", (event) => {
+    if (isSelectedChoice(event.target)) event.stopImmediatePropagation();
+  }, { capture: true, signal });
+  controls.addEventListener("keydown", (event) => {
+    if (event.isComposing) return;
+    if (["Enter", " ", "Control", "Alt", "Meta", "Shift"].includes(event.key) && isSelectedChoice(event.target)) event.stopImmediatePropagation();
+  }, { capture: true, signal });
   choices.forEach((choice) => {
     choice.addEventListener("click", (event) => {
       const theme = choice.dataset.themeChoice;
@@ -161,7 +172,8 @@ export function initializeAppearanceDemo() {
       if (!isMoonVariant(value) || !option.checked) return;
       moonVariant = value;
       document.querySelectorAll<HTMLElement>("[data-moon-art]").forEach((art) => { art.hidden = art.dataset.moonArt !== moonVariant; });
-      selectTheme(selected, controls.dataset.interaction === "keyboard");
+      cancelMotion();
+      syncTheme(controls.dataset.interaction === "keyboard", selected === "dark");
       status.textContent = `Dark icon: ${moonVariant === "cloud" ? "Cloud clears" : "Crescent to full"}. Preview remains ${themeLabel(selected)}.`;
     }, { signal });
   });
@@ -189,5 +201,5 @@ export function initializeAppearanceDemo() {
   }, { signal });
   window.addEventListener("pagehide", cancelMotion, { signal });
   updateDeviceArtwork();
-  selectTheme(selected, true);
+  syncTheme(true);
 }
