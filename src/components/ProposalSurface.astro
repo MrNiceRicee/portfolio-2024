@@ -1,0 +1,227 @@
+---
+import filmMaterial from "../assets/proposal-film.png";
+import grain from "../assets/noise.svg";
+import AppearanceIcon from "./AppearanceIcon.astro";
+import ChevronRight from "./icons/ChevronRight.astro";
+---
+<div class="proposal-decoration" aria-hidden="true">
+  <div class="proposal-paper-fallback" style={`--fallback-material: url("${filmMaterial.src}")`}></div>
+  <div class="proposal-paper" data-proposal-paper></div>
+</div>
+<div class="proposal-fibers" aria-hidden="true" style={`--fiber-grain: url("${grain.src}")`}></div>
+<div class="proposal-film" data-proposal-film aria-hidden="true">
+  <div class="grainy-light dark:grainy-dark proposal-grain"></div>
+</div>
+<canvas class="proposal-particles fixed inset-0 pointer-events-none z-[100] opacity-35 dark:opacity-25" data-proposal-particles aria-hidden="true"></canvas>
+<div class="proposal-controls" data-type="metadata">
+  <div class="proposal-appearance" data-theme-controls data-preference="system" data-open="false" hidden>
+    <button class="proposal-appearance-trigger" id="appearance-trigger" type="button" data-theme-trigger aria-label="Appearance: System" aria-haspopup="menu" aria-controls="appearance-menu" aria-expanded="false">
+      <span class="proposal-appearance-current-icon" aria-hidden="true">
+        {(["light", "dark", "system"] as const).map((kind) => (
+          <span class="proposal-appearance-trigger-art" data-theme-trigger-art={kind}>
+            <AppearanceIcon id={`appearance-trigger-${kind}`} kind={kind} state={kind === "system" ? "active" : "idle"} />
+          </span>
+        ))}
+      </span>
+      <span data-theme-label>System</span>
+      <ChevronRight class="proposal-appearance-chevron" />
+    </button>
+    <div class="proposal-appearance-menu" id="appearance-menu" data-theme-menu role="menu" aria-labelledby="appearance-trigger" hidden>
+      <div class="proposal-appearance-heading" aria-hidden="true">Appearance</div>
+      {(["light", "dark", "system"] as const).map((preference) => (
+        <button type="button" class="proposal-appearance-option" role="menuitemradio" data-theme-choice={preference} aria-checked={preference === "system"} tabindex="-1">
+          <AppearanceIcon id={`appearance-menu-${preference}`} kind={preference} state={preference === "system" ? "active" : "idle"} />
+          <span>{preference.charAt(0).toUpperCase() + preference.slice(1)}</span>
+          <svg class="proposal-appearance-check" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4 10-10" /></svg>
+        </button>
+      ))}
+    </div>
+  </div>
+  <button class="proposal-pause" type="button" data-pause-film hidden>Pause film</button>
+</div>
+
+<style is:global>
+  html[data-proposal] {
+    --proposal-paper: #fafaf9;
+    --proposal-wash: #e8dfcc;
+    --focus-surface: var(--proposal-paper);
+  }
+  html.dark[data-proposal] {
+    --proposal-paper: #0c0a09;
+    --proposal-wash: #302a21;
+    --focus-surface: var(--proposal-paper);
+  }
+  html[data-proposal] body {
+    position: relative;
+    display: flow-root;
+    isolation: isolate;
+    background-color: var(--proposal-paper);
+  }
+  .proposal-decoration {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+  }
+  .proposal-paper, .proposal-paper-fallback { position: absolute; inset: 0; }
+  .proposal-paper { visibility: hidden; }
+  .proposal-paper canvas { z-index: 0; }
+  html[data-shader-status="ready"] .proposal-paper { visibility: visible; }
+  html[data-shader-status="ready"] .proposal-paper-fallback { visibility: hidden; }
+  /* an approximation for no JS or unavailable WebGL, not the Paper shader */
+  .proposal-paper-fallback {
+    background-image: var(--fallback-material);
+    background-size: 768px 768px;
+  }
+  html.dark[data-proposal] .proposal-paper-fallback { filter: invert(1); opacity: 0.2; }
+  /* stationary fibers share the document with the ink */
+  .proposal-fibers {
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    background-image: var(--fiber-grain);
+    background-size: 160px 160px;
+    opacity: 0.12;
+    mix-blend-mode: multiply;
+  }
+  html.dark[data-proposal] .proposal-fibers { mix-blend-mode: screen; opacity: 0.08; }
+  .proposal-film { position: fixed; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
+  html[data-proposal] .proposal-grain { animation-play-state: paused; }
+  html[data-proposal][data-film-motion="running"] .proposal-grain { animation-play-state: running; }
+  .proposal-particles { width: 100%; height: 100%; }
+  .proposal-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px 24px;
+    color: var(--focus-ink);
+    max-width: 42rem;
+    margin: 0 auto 24px;
+    position: relative;
+    z-index: 102;
+  }
+  .proposal-appearance { position: relative; min-width: 0; }
+  .proposal-appearance-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px 10px;
+    color: inherit;
+    background: var(--proposal-paper);
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .proposal-appearance [data-theme-label] { min-width: 6ch; text-align: left; }
+  .proposal-appearance-current-icon { display: inline-grid; width: 22px; height: 22px; }
+  .proposal-appearance-trigger-art { grid-area: 1 / 1; display: inline-grid; visibility: hidden; }
+  .proposal-appearance[data-preference="light"] [data-theme-trigger-art="light"],
+  .proposal-appearance[data-preference="dark"] [data-theme-trigger-art="dark"],
+  .proposal-appearance[data-preference="system"] [data-theme-trigger-art="system"] { visibility: visible; }
+  .proposal-appearance-chevron { width: 14px; height: 14px; transform: rotate(-90deg); }
+  .proposal-appearance[data-open="true"] .proposal-appearance-chevron { transform: rotate(90deg); }
+  .proposal-appearance-menu {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    width: min(224px, calc(100vw - 48px));
+    box-sizing: border-box;
+    padding: 6px;
+    background: var(--proposal-paper);
+    border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+    border-radius: 3px;
+    box-shadow: 0 5px 16px #00000014;
+    transform-origin: bottom left;
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+    visibility: hidden;
+    pointer-events: none;
+  }
+  html.dark .proposal-appearance-menu { box-shadow: 0 5px 16px #00000040; }
+  .proposal-appearance[data-open="true"] .proposal-appearance-menu { opacity: 1; transform: translateY(0) scale(1); visibility: visible; pointer-events: auto; }
+  .proposal-appearance-heading { padding: 7px 10px 8px; font-size: 12px; letter-spacing: 0.04em; }
+  .proposal-appearance-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 2px;
+    color: inherit;
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .proposal-appearance-option[aria-checked="true"] { background: color-mix(in srgb, currentColor 6%, var(--proposal-paper)); }
+  .proposal-appearance[data-interaction="pointer"] .proposal-appearance-trigger:active { transform: scale(0.98); }
+  .proposal-appearance-check { margin-left: auto; opacity: 0; }
+  .proposal-appearance-option[aria-checked="true"] .proposal-appearance-check { opacity: 1; }
+  .proposal-appearance[data-interaction="pointer"] :is(.proposal-appearance-chevron, .proposal-appearance-trigger) { transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms cubic-bezier(0.16, 1, 0.3, 1); }
+  .proposal-appearance[data-interaction="pointer"] .proposal-appearance-menu { transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 160ms; }
+  .proposal-appearance[data-interaction="pointer"][data-open="true"] .proposal-appearance-menu { transition-delay: 0s; }
+  @media (hover: hover) and (pointer: fine) {
+    .proposal-appearance-trigger:hover, .proposal-appearance-option:hover { background: color-mix(in srgb, currentColor 9%, var(--proposal-paper)); }
+  }
+  .proposal-pause {
+    position: relative;
+    margin: 0;
+    z-index: 102;
+    padding: 8px 12px;
+    min-height: 44px;
+    font-size: 12px;
+    color: var(--focus-ink);
+    background: var(--proposal-paper);
+    border: 1px solid currentColor;
+    border-radius: 2px;
+  }
+  .proposal-pause[hidden], .proposal-appearance[hidden], .proposal-appearance-menu[hidden] { display: none; }
+  html[data-proposal][data-fallback] :is(.proposal-decoration, .proposal-fibers, .proposal-film, .proposal-particles) { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html[data-proposal] :is(.proposal-grain, .proposal-film, .proposal-particles) { animation: none; }
+    .proposal-particles { display: none; }
+    .proposal-appearance :is(.proposal-appearance-chevron, .proposal-appearance-trigger, .proposal-appearance-menu) { transition: none !important; }
+  }
+
+  /* keep the complete, immediate 2px edge and warm wash */
+  html[data-proposal] :where(a[href], button, summary, input, select, textarea):focus-visible {
+    transition: none;
+    z-index: 102;
+    background-color: var(--proposal-wash);
+    box-shadow: 0 0 0 3px var(--proposal-wash);
+  }
+  @media (forced-colors: active) {
+    .proposal-appearance-option[aria-checked="true"] { outline: 1px solid SelectedItem; }
+    html[data-proposal] :where(a[href], button, summary, input, select, textarea):focus-visible {
+      box-shadow: none;
+      outline-color: Highlight;
+    }
+    .proposal-decoration, .proposal-fibers, .proposal-film, .proposal-particles, .proposal-pause { display: none; }
+  }
+</style>
+
+<script>
+  const root = document.documentElement;
+  if (root.hasAttribute("data-proposal") && !root.hasAttribute("data-fallback")) {
+    const lifetime = new AbortController();
+    window.addEventListener("pagehide", (event) => {
+      if (!event.persisted) lifetime.abort();
+    }, { signal: lifetime.signal });
+    import("../scripts/proposalRuntime").then(({ initializeProposalRuntime }) => {
+      if (lifetime.signal.aborted) return;
+      return initializeProposalRuntime(lifetime.signal);
+    }).catch(() => {
+      if (lifetime.signal.aborted) return;
+      root.dataset.shaderStatus = "fallback";
+      root.dataset.filmMotion = "paused";
+      document.dispatchEvent(new Event("proposalshaderchange"));
+    });
+  }
+</script>
