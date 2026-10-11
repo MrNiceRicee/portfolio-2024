@@ -2,7 +2,6 @@
 export function initializeAppearanceMenu(
   controls: HTMLElement,
   signal: AbortSignal,
-  { keepOpenOnSelection = false }: { keepOpenOnSelection?: boolean } = {},
 ) {
   const trigger = controls.querySelector<HTMLButtonElement>("[data-theme-trigger]");
   const menu = controls.querySelector<HTMLElement>("[data-theme-menu]");
@@ -40,8 +39,7 @@ export function initializeAppearanceMenu(
   }, options);
   items.forEach((item, index) => item.addEventListener("click", (event) => {
     controls.dataset.interaction = event.detail === 0 ? "keyboard" : "pointer";
-    if (keepOpenOnSelection && open) focusItem(index);
-    else close(true);
+    if (open) focusItem(index);
   }, options));
   controls.addEventListener("keydown", (event) => {
     controls.dataset.interaction = "keyboard";

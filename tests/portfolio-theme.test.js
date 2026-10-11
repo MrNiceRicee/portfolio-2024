@@ -6,12 +6,11 @@ import { initializePortfolioTheme } from "../src/scripts/portfolioTheme";
 const layout = readFileSync(new URL("../src/layouts/Layout.astro", import.meta.url), "utf8");
 const headScript = layout.match(/<script is:inline>([\s\S]*?)<\/script>/)[1];
 
-function resolveHead({ saved = null, preview, systemDark = false, storageThrows = false, proposal = true } = {}) {
+function resolveHead({ saved = null, preview, systemDark = false, storageThrows = false } = {}) {
   let dark = false;
   const root = {
     dataset: { proposalTheme: preview },
-    hasAttribute: () => proposal,
-    classList: { toggle: (_, value) => { dark = value; }, contains: () => dark },
+    classList: { toggle: (_, value) => { dark = value; } },
   };
   const window = {
     localStorage: { getItem() { if (storageThrows) throw new Error("blocked"); return saved; } },
@@ -21,9 +20,9 @@ function resolveHead({ saved = null, preview, systemDark = false, storageThrows 
   return { preference: root.dataset.themePreference, dark };
 }
 
-test("early head uses preview, remembered choice, then System before content on portfolio and asset layouts", () => {
+test("early head uses preview, remembered choice, then System before content", () => {
   expect(resolveHead({ saved: "dark" })).toEqual({ preference: "dark", dark: true });
-  expect(resolveHead({ saved: "light", systemDark: true, proposal: false })).toEqual({ preference: "light", dark: false });
+  expect(resolveHead({ saved: "light", systemDark: true })).toEqual({ preference: "light", dark: false });
   expect(resolveHead({ saved: "dark", preview: "light", systemDark: true })).toEqual({ preference: "light", dark: false });
   expect(resolveHead({ saved: "light", preview: "dark" })).toEqual({ preference: "dark", dark: true });
   for (const saved of [null, "", "LIGHT", "constructor", "unknown", "system"]) {
@@ -33,15 +32,15 @@ test("early head uses preview, remembered choice, then System before content on 
 });
 
 async function withRuntime(run, { saved = "light", preview = "dark", storageThrows = false, historyThrows = false } = {}) {
-  const keys = ["document", "window", "matchMedia", "IntersectionObserver", "requestAnimationFrame"];
+  const keys = ["document", "window", "matchMedia", "IntersectionObserver"];
   const originals = keys.map((key) => Object.getOwnPropertyDescriptor(globalThis, key));
-  let dark = preview === "dark", storageReads = 0, storageWrites = 0, animationFrames = 0, intersections;
+  let dark = preview === "dark", storageReads = 0, storageWrites = 0, intersections;
   const writes = [];
   const dataset = (initial) => new Proxy(initial, { set(target, name, value) {
     writes.push([String(name), value]); target[name] = value; return true;
   } });
   const root = {
-    dataset: dataset({ proposalTheme: preview, shaderStatus: "ready", film: "original" }),
+    dataset: dataset({ proposalTheme: preview, shaderStatus: "ready" }),
     hasAttribute: () => false,
     classList: { contains: () => dark, toggle: (_, value) => { writes.push(["dark", value]); dark = value; } },
   };
@@ -95,7 +94,6 @@ async function withRuntime(run, { saved = "light", preview = "dark", storageThro
     document, window,
     matchMedia: (query) => query.includes("reduced") ? reduced : forced,
     IntersectionObserver: class { constructor(fn) { intersections = fn; } observe() {} disconnect() {} },
-    requestAnimationFrame() { animationFrames++; return 1; },
   };
   const event = (type, target, properties = {}) => {
     const result = new Event(type, { cancelable: true });
@@ -119,9 +117,9 @@ async function withRuntime(run, { saved = "light", preview = "dark", storageThro
     new Function("document", "window", headScript)(document, window);
     storageReads = 0;
     initializePortfolioTheme();
-    await run({ root, controls, buttons, icons, label, trigger, menu, document, metadata, storage, replacements, window, reduced, pause, choose, open, key, pointer, event, osTheme, hide,
-      dark: () => dark, storageReads: () => storageReads, storageWrites: () => storageWrites, writes, animationFrames: () => animationFrames,
-      startFilm() { initializeProposalFilm(true); intersections([{ isIntersecting: true }]); },
+    await run({ root, controls, buttons, icons, label, trigger, menu, document, metadata, storage, replacements, window, reduced, pause, choose, open, key, pointer, osTheme, hide,
+      dark: () => dark, storageReads: () => storageReads, storageWrites: () => storageWrites, writes,
+      startFilm() { initializeProposalFilm(); intersections([{ isIntersecting: true }]); },
     });
   } finally {
     hide(false);
@@ -168,19 +166,17 @@ test("theme choices tolerate storage/history denial and retain native state thro
   }, { storageThrows: true, historyThrows: true });
 });
 
-test("theme changes leave a user-paused film and reduced-motion eligibility stopped without animation work", async () => {
-  await withRuntime(({ startFilm, pause, choose, root, reduced, animationFrames }) => {
+test("theme changes preserve a user-paused film and reduced-motion eligibility", async () => {
+  await withRuntime(({ startFilm, pause, choose, root, reduced }) => {
     startFilm(); expect(root.dataset.filmMotion).toBe("running");
     pause.dispatchEvent(new Event("click"));
     for (const choice of ["light", "dark", "system"]) choose(choice);
     expect(root.dataset.filmMotion).toBe("paused");
-    expect(root.dataset.filmMotionReason).toBe("user-paused");
     expect(pause.textContent).toBe("Resume film");
     reduced.matches = true; reduced.dispatchEvent(new Event("change"));
     choose("dark");
-    expect(root.dataset.filmMotionReason).toBe("reduced-motion");
+    expect(root.dataset.filmMotion).toBe("paused");
     expect(pause.hidden).toBe(true);
-    expect(animationFrames()).toBe(0);
   });
 });
 

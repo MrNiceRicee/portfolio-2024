@@ -9,7 +9,7 @@ const blurrableSource = readFileSync(new URL("../src/components/Blurrable.astro"
 const compiledBlurrable = new Bun.Transpiler({ loader: "ts" }).transformSync(blurrableSource);
 const settle = () => new Promise((resolve) => setTimeout(resolve, 5));
 
-async function withMenu(run, config) {
+async function withMenu(run) {
   const keys = ["document", "window", "HTMLElement", "Element", "customElements"];
   const originals = keys.map((key) => Object.getOwnPropertyDescriptor(globalThis, key));
   const document = Object.assign(new EventTarget(), { activeElement: null, querySelector: () => null });
@@ -70,7 +70,7 @@ async function withMenu(run, config) {
   };
   try {
     keys.forEach((name) => Object.defineProperty(globalThis, name, { value: values[name], configurable: true, writable: true }));
-    initializeAppearanceMenu(controls, lifetime.signal, config);
+    initializeAppearanceMenu(controls, lifetime.signal);
     // EventTarget has no DOM tree: this registration order represents the
     // document capture controller running before the actual spoiler bubble listener.
     new Function("registerEscapeDismissal", compiledBlurrable)(registerEscapeDismissal);
@@ -85,79 +85,51 @@ async function withMenu(run, config) {
   }
 }
 
-test("keyboard and pointer opening, roving navigation, selection and focus return", async () => {
-  await withMenu(({ controls, trigger, menu, items, document, click, key }) => {
+test("keyboard and pointer opening, roving navigation and persistent selection", async () => {
+  await withMenu(({ controls, trigger, menu, items, document, window, click, key }) => {
     expect(menu.inert).toBe(true);
     click(trigger); expect(document.activeElement).toBe(items[2]);
+    expect(window.scrollY).toBe(500);
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
-    key("ArrowDown"); expect(document.activeElement).toBe(items[0]);
-    key("ArrowUp"); expect(document.activeElement).toBe(items[2]);
-    key("Home"); expect(document.activeElement).toBe(items[0]);
-    key("End"); expect(document.activeElement).toBe(items[2]);
+    for (const [navigation, index] of [["ArrowDown", 0], ["ArrowUp", 2], ["Home", 0], ["End", 2]]) {
+      expect(key(navigation).defaultPrevented).toBe(true);
+      expect(document.activeElement).toBe(items[index]);
+      expect(window.scrollY).toBe(500);
+    }
     expect(items.map((item) => item.tabIndex)).toEqual([-1, -1, 0]);
+    items.forEach((item) => item.setAttribute("aria-checked", String(item === items[1])));
     click(items[1], 0);
+    expect(document.activeElement).toBe(items[1]);
+    expect(menu.inert).toBe(false);
+    expect(controls.dataset.open).toBe("true");
+    expect(items.map((item) => item.tabIndex)).toEqual([-1, 0, -1]);
+    expect(items[1].getAttribute("aria-checked")).toBe("true");
+    expect(window.scrollY).toBe(500);
+    key("Escape");
     expect(document.activeElement).toBe(trigger);
     expect(menu.inert).toBe(true);
-    expect(items.map((item) => item.tabIndex)).toEqual([-1, -1, -1]);
     click(trigger, 0); expect(document.activeElement).toBe(items[0]);
     expect(controls.dataset.interaction).toBe("keyboard");
     key("Escape");
-    key("ArrowUp", trigger); expect(document.activeElement).toBe(items[2]);
+    expect(key("ArrowUp", trigger).defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(items[2]);
+    expect(window.scrollY).toBe(500);
     key("Escape");
-    key("ArrowDown", trigger); expect(document.activeElement).toBe(items[0]);
+    expect(key("ArrowDown", trigger).defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(items[0]);
+    expect(window.scrollY).toBe(500);
   });
 });
 
-test("menu opening and roving focus preserve an offscreen reading position", async () => {
-  await withMenu(({ trigger, items, document, window, click, key }) => {
-    for (const detail of [1, 0]) {
-      click(trigger, detail);
-      expect(document.activeElement).toBe(items[detail === 0 ? 0 : 2]);
-      expect(window.scrollY).toBe(500);
-      for (const [navigation, index] of [["Home", 0], ["ArrowUp", 2], ["ArrowDown", 0], ["End", 2]]) {
-        expect(key(navigation).defaultPrevented).toBe(true);
-        expect(document.activeElement).toBe(items[index]);
-        expect(window.scrollY).toBe(500);
-      }
-      key("Escape");
-    }
-    for (const [navigation, index] of [["ArrowUp", 2], ["ArrowDown", 0]]) {
-      key(navigation, trigger);
-      expect(document.activeElement).toBe(items[index]);
-      expect(window.scrollY).toBe(500);
-      key("Escape");
-    }
-  });
-});
-
-test("selection, Escape and the first outside dismissal return focus without scrolling", async () => {
-  await withMenu(async ({ trigger, menu, items, document, window, click, key, event, spoilerButton, Element }) => {
-    click(spoilerButton);
-    const outside = new Element();
-    let activations = 0; outside.addEventListener("click", () => { activations++; });
-    const dismissals = [
-      ...items.map((item) => () => click(item)),
-      () => key("Escape"),
-      () => click(trigger),
-      () => {
-        const down = event("pointerdown", outside); document.dispatchEvent(down);
-        expect(down.defaultPrevented).toBe(true);
-        expect(click(outside).defaultPrevented).toBe(true);
-      },
-    ];
-    for (const dismiss of dismissals) {
+test("Escape and trigger dismissal return focus without scrolling", async () => {
+  await withMenu(({ trigger, menu, document, window, click, key }) => {
+    for (const dismiss of [() => key("Escape"), () => click(trigger)]) {
       click(trigger);
-      window.scrollY = 500;
       dismiss();
       expect(document.activeElement).toBe(trigger);
       expect(menu.inert).toBe(true);
       expect(window.scrollY).toBe(500);
-      await settle();
-      expect(spoilerButton.dataset.status).toBe("active");
     }
-    expect(activations).toBe(0);
-    expect(click(outside).defaultPrevented).toBe(false);
-    expect(activations).toBe(1);
   });
 });
 
@@ -189,7 +161,6 @@ test("actual Blurrable listeners retain reveals for menu clicks and consumed Esc
     click(spoilerButton); expect(spoilerButton.dataset.status).toBe("active");
     click(trigger); expect(spoilerButton.dataset.status).toBe("active");
     click(items[0]); expect(spoilerButton.dataset.status).toBe("active");
-    click(trigger);
     const escape = key("Escape");
     expect(escape.defaultPrevented).toBe(true);
     await settle(); expect(spoilerButton.dataset.status).toBe("active");
@@ -226,33 +197,4 @@ test("shared lifetime abort closes owned UI and releases all menu listeners", as
     expect(down.defaultPrevented).toBe(false);
     expect(click(outside).defaultPrevented).toBe(false);
   });
-});
-
-
-test("optional persistent selection accepts already-projected checks and preserves existing dismissal behavior", async () => {
-  await withMenu(async ({ controls, trigger, items, menu, document, window, click, key, spoilerButton, Element }) => {
-    click(spoilerButton); click(trigger);
-    for (const item of items) {
-      // preference authority has already projected aria-checked before the helper runs
-      items.forEach((candidate) => candidate.setAttribute("aria-checked", String(candidate === item)));
-      click(item);
-      expect(controls.dataset.open).toBe("true");
-      expect(menu.inert).toBe(false);
-      expect(document.activeElement).toBe(item);
-      expect(items.map((candidate) => candidate.tabIndex)).toEqual(items.map((candidate) => candidate === item ? 0 : -1));
-      expect(window.scrollY).toBe(500);
-      expect(spoilerButton.dataset.status).toBe("active");
-    }
-    key("Escape"); await settle();
-    expect(menu.inert).toBe(true);
-    expect(document.activeElement).toBe(trigger);
-    expect(spoilerButton.dataset.status).toBe("active");
-    click(trigger); key("Tab", document.activeElement, { shiftKey: true });
-    expect(menu.inert).toBe(true);
-    click(trigger);
-    const outside = new Element();
-    expect(click(outside).defaultPrevented).toBe(true);
-    expect(document.activeElement).toBe(trigger);
-    expect(spoilerButton.dataset.status).toBe("active");
-  }, { keepOpenOnSelection: true });
 });

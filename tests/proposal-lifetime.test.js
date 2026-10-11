@@ -4,16 +4,15 @@ import { expect, test } from "bun:test";
 // and vendor WebGL boundaries so imports, decode and the first frame can be held.
 function probe(stage, rejected = false, persisted = false) {
   const child = Bun.spawnSync([process.execPath, "-e", `
+    import { mock } from "bun:test";
     import { readFileSync } from "node:fs";
-    import { initializeProposalParticles } from "./src/scripts/proposalParticles";
     import { initializeProposalFilm } from "./src/scripts/proposalFilm";
-    import { getPaperVariant, paperVariants } from "./src/scripts/proposalConfig";
     const stage = ${JSON.stringify(stage)}, rejected = ${rejected}, persisted = ${persisted};
     let resolveHeld, rejectHeld;
     const held = new Promise((resolve, reject) => { resolveHeld = resolve; rejectHeld = reject; });
     const flush = async () => { for (let i = 0; i < 5; i++) await new Promise(resolve => setImmediate(resolve)); };
     const document = Object.assign(new EventTarget(), { hidden: false });
-    const root = { dataset: { film: "original" }, hasAttribute: key => key === "data-proposal", classList: { contains: () => false } };
+    const root = { dataset: {}, hasAttribute: key => key === "data-proposal", classList: { contains: () => false } };
     document.documentElement = root;
     const window = Object.assign(new EventTarget(), { innerWidth: 390, innerHeight: 820 });
     const button = new EventTarget();
@@ -40,12 +39,17 @@ function probe(stage, rejected = false, persisted = false) {
     }
     const compile = path => new Bun.Transpiler({ loader: "ts" }).transformSync(readFileSync(path, "utf8"))
       .replace(/import[\\s\\S]*?from\\s*['"][^'"]+['"];?/g, "").replace(/export /g, "");
-    const shaderBody = compile("src/scripts/proposalShaders.ts");
-    const initializeProposalShaders = new Function("getPaperVariant", "paperVariants", "ShaderMount", "ShaderFitOptions", "getShaderColorFromString", "getShaderNoiseTexture", "paperTextureFragmentShader", shaderBody + "; return initializeProposalShaders;")
-      (getPaperVariant, paperVariants, ShaderMount, { cover: 0 }, value => value, () => ({ decode: () => stage === "decode" ? held : Promise.resolve() }), "shader");
+    mock.module("@paper-design/shaders", () => ({
+      ShaderMount,
+      ShaderFitOptions: { cover: 0 },
+      getShaderColorFromString: value => value,
+      getShaderNoiseTexture: () => ({ decode: () => stage === "decode" ? held : Promise.resolve() }),
+      paperTextureFragmentShader: "shader",
+    }));
+    const { initializeProposalShaders } = await import("./src/scripts/proposalShaders.ts");
     const runtimeBody = compile("src/scripts/proposalRuntime.ts").replace(/import\\([^)]*\\)/, "loadShader()");
-    const initializeProposalRuntime = new Function("initializeProposalParticles", "initializeProposalFilm", "loadShader", runtimeBody + "; return initializeProposalRuntime;")
-      (initializeProposalParticles, initializeProposalFilm, async () => { imports++; if (stage === "shader") await held; return { initializeProposalShaders }; });
+    const initializeProposalRuntime = new Function("initializeProposalFilm", "loadShader", runtimeBody + "; return initializeProposalRuntime;")
+      (initializeProposalFilm, async () => { imports++; if (stage === "shader") await held; return { initializeProposalShaders }; });
     const component = readFileSync("src/components/ProposalSurface.astro", "utf8").match(/<script>([\\s\\S]*?)<\\/script>/)[1];
     function loadRuntime() { return (async () => { if (stage === "entry") await held; return { initializeProposalRuntime }; })(); }
     globalThis.loadRuntime = loadRuntime;
@@ -65,7 +69,7 @@ function probe(stage, rejected = false, persisted = false) {
       intersections.forEach(callback => callback([{ isIntersecting: true }]));
     }
     console.log(JSON.stringify({ mounts, disposals, shaderFrames, imports, frames: frames.size, afterExit,
-      final: root.dataset, lateEvents: events.slice(eventsAfterExit), buttonHidden: button.hidden }));
+      final: root.dataset, lateEvents: events.slice(eventsAfterExit) }));
   `], { cwd: process.cwd(), stdout: "pipe", stderr: "pipe" });
   if (child.exitCode !== 0) throw new Error(new TextDecoder().decode(child.stderr));
   return JSON.parse(new TextDecoder().decode(child.stdout));

@@ -1,4 +1,3 @@
-import { getPaperVariant, paperVariants } from "./proposalConfig";
 import {
   ShaderMount, ShaderFitOptions, getShaderColorFromString,
   getShaderNoiseTexture, paperTextureFragmentShader, type PaperTextureUniforms,
@@ -11,7 +10,6 @@ export async function initializeProposalShaders(signal: AbortSignal) {
   if (signal.aborted || !host || root.hasAttribute("data-fallback")) return;
   let paper: ShaderMount | undefined;
   let themeObserver: MutationObserver | undefined;
-  let cancelled = false;
 
   function themeColors(dark: boolean) {
     const color = getShaderColorFromString(dark ? "#0c0a09" : "#fafaf9");
@@ -22,7 +20,7 @@ export async function initializeProposalShaders(signal: AbortSignal) {
   }
 
   function setStatus(status: "loading" | "ready" | "fallback") {
-    if (cancelled || signal.aborted) return;
+    if (signal.aborted) return;
     root.dataset.shaderStatus = status;
     document.dispatchEvent(new Event("proposalshaderchange"));
   }
@@ -35,24 +33,15 @@ export async function initializeProposalShaders(signal: AbortSignal) {
     setStatus("fallback");
   }
 
-  signal.addEventListener("abort", () => {
-    cancelled = true;
-    fallback();
-  }, { once: true });
-  window.addEventListener("pagehide", (event) => {
-    if (event.persisted) return;
-    cancelled = true;
-    fallback();
-  }, { signal });
+  signal.addEventListener("abort", fallback, { once: true });
   setStatus("loading");
 
   try {
     const noise = getShaderNoiseTexture();
     if (!noise) throw new Error("Paper noise texture unavailable");
     await noise.decode();
-    if (cancelled || signal.aborted) return;
+    if (signal.aborted) return;
     let dark = root.classList.contains("dark");
-    const surface = paperVariants[getPaperVariant(root.dataset.surface)];
     const uniforms = {
       u_fit: ShaderFitOptions.cover, u_scale: 1, u_rotation: 0,
       u_originX: 0.5, u_originY: 0.5, u_offsetX: 0, u_offsetY: 0,
@@ -63,17 +52,17 @@ export async function initializeProposalShaders(signal: AbortSignal) {
       u_blending: 0, u_distortion: 0, u_angle: 300, u_seed: 4,
       u_roughness: 0.04, u_roughnessSize: 0.3, u_roughnessRows: 0,
       u_fiber: 0.08, u_fiberSize: 0.35,
-      u_folds: surface.folds, u_foldSizeX: 0.45, u_foldSizeY: 0.55,
+      u_folds: 0, u_foldSizeX: 0.45, u_foldSizeY: 0.55,
       u_foldOffsetX: 0, u_foldOffsetY: 0,
-      u_wrinkles: surface.wrinkles, u_wrinkleSize: 0.4,
-      u_crumples: surface.crumples, u_crumpleCount: 6, u_drops: 0,
+      u_wrinkles: 0, u_wrinkleSize: 0.4,
+      u_crumples: 0, u_crumpleCount: 6, u_drops: 0,
       u_noiseTexture: noise,
     } satisfies PaperTextureUniforms & { u_imageAspectRatio: number };
     paper = new ShaderMount(host, paperTextureFragmentShader, uniforms,
       { alpha: false, antialias: false, preserveDrawingBuffer: false }, 0, 0, 1, 600_000);
     themeObserver = new MutationObserver(() => {
       const nextDark = root.classList.contains("dark");
-      if (cancelled || signal.aborted || !paper || nextDark === dark) return;
+      if (signal.aborted || !paper || nextDark === dark) return;
       dark = nextDark;
       try {
         paper.setUniforms(themeColors(dark));
@@ -86,7 +75,7 @@ export async function initializeProposalShaders(signal: AbortSignal) {
     paper.canvasElement.addEventListener("webglcontextlost", fallback, { once: true });
     // let the vendor resize observer establish the viewport resolution first
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    if (cancelled || signal.aborted || !paper) return;
+    if (signal.aborted || !paper) return;
     paper.setFrame(0);
     // the vendor can leave a mount after a failed program or texture upload
     const gl = paper.canvasElement.getContext("webgl2");

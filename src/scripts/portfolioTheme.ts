@@ -85,7 +85,7 @@ export function initializePortfolioTheme() {
   updateDeviceArtwork();
   update();
   if (controls) {
-    initializeAppearanceMenu(controls, lifetime.signal, { keepOpenOnSelection: true });
+    initializeAppearanceMenu(controls, lifetime.signal);
     controls.hidden = false;
   }
 }
