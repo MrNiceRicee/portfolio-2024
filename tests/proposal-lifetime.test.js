@@ -1,9 +1,10 @@
 import { expect, test } from "bun:test";
+import { runBunProbe } from "./helpers/bunProbe.js";
 
 // Execute the actual component, runtime and shader bodies. Replace module delivery
 // and vendor WebGL boundaries so imports, decode and the first frame can be held.
 function probe(stage, rejected = false, persisted = false) {
-  const child = Bun.spawnSync([process.execPath, "-e", `
+  const { stdout } = runBunProbe(`
     import { mock } from "bun:test";
     import { readFileSync } from "node:fs";
     import { initializeProposalFilm } from "./src/scripts/proposalFilm";
@@ -69,10 +70,9 @@ function probe(stage, rejected = false, persisted = false) {
       intersections.forEach(callback => callback([{ isIntersecting: true }]));
     }
     console.log(JSON.stringify({ mounts, disposals, shaderFrames, imports, frames: frames.size, afterExit,
-      final: root.dataset, lateEvents: events.slice(eventsAfterExit) }));
-  `], { cwd: process.cwd(), stdout: "pipe", stderr: "pipe" });
-  if (child.exitCode !== 0) throw new Error(new TextDecoder().decode(child.stderr));
-  return JSON.parse(new TextDecoder().decode(child.stdout));
+      final: root.dataset, events, lateEvents: events.slice(eventsAfterExit) }));
+  `);
+  return JSON.parse(stdout);
 }
 
 
@@ -92,6 +92,7 @@ for (const stage of ["entry", "shader"]) {
       expect(result.final.filmMotion).toBe(rejected ? "paused" : "running");
       expect(result.frames).toBe(rejected ? 0 : 1);
       expect(result.mounts).toBe(rejected ? 0 : 1);
+      if (rejected) expect(result.events).toEqual(["fallback"]);
     });
   }
 }

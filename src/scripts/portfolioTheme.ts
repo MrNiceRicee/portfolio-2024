@@ -9,7 +9,7 @@ export function initializePortfolioTheme() {
   let preference: ThemePreference = initial === "light" || initial === "dark" ? initial : "system";
   const systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
   const controls = document.querySelector<HTMLElement>("[data-theme-controls]");
-  const buttons = controls?.querySelectorAll<HTMLButtonElement>("[data-theme-choice]");
+  const buttons = Array.from(controls?.querySelectorAll<HTMLButtonElement>("[data-theme-choice]") ?? []);
   const trigger = controls?.querySelector<HTMLButtonElement>("[data-theme-trigger]");
   const label = controls?.querySelector<HTMLElement>("[data-theme-label]");
   const icons = controls?.querySelectorAll<HTMLElement>("[data-appearance-icon]");
@@ -35,7 +35,7 @@ export function initializePortfolioTheme() {
       ? document.body.dataset.darkcolor ?? "#181615"
       : document.body.dataset.lightcolor ?? "#ebebec");
     appleStatus?.setAttribute("content", dark ? "black-translucent" : "default");
-    buttons?.forEach((button) => { button.setAttribute("aria-checked", String(button.dataset.themeChoice === preference)); });
+    buttons.forEach((button) => { button.setAttribute("aria-checked", String(button.dataset.themeChoice === preference)); });
     const currentLabel = preference.charAt(0).toUpperCase() + preference.slice(1);
     if (controls) controls.dataset.preference = preference;
     if (label) label.textContent = currentLabel;
@@ -46,7 +46,7 @@ export function initializePortfolioTheme() {
     });
   };
 
-  buttons?.forEach((button) => button.addEventListener("click", (event) => {
+  buttons.forEach((button) => button.addEventListener("click", (event) => {
     const value = button.dataset.themeChoice;
     if (value !== "light" && value !== "dark" && value !== "system") return;
     if (preference === value) { event.stopImmediatePropagation(); return; }
@@ -63,7 +63,7 @@ export function initializePortfolioTheme() {
     update(event.detail === 0);
   }, options));
   // current-choice activation must not interrupt an in-flight drawing
-  const isSelectedChoice = (target: EventTarget | null) => Array.from(buttons ?? []).some((button) =>
+  const isSelectedChoice = (target: EventTarget | null) => buttons.some((button) =>
     button.dataset.themeChoice === preference && button.contains(target as Node | null));
   document.addEventListener("pointerdown", (event) => {
     if (isSelectedChoice(event.target)) event.stopImmediatePropagation();

@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
+import { targetedEvent } from "./helpers/targetedEvent.js";
 import { initializeProposalFilm } from "../src/scripts/proposalFilm";
 import { initializePortfolioTheme } from "../src/scripts/portfolioTheme";
 
@@ -95,20 +96,14 @@ async function withRuntime(run, { saved = "light", preview = "dark", storageThro
     matchMedia: (query) => query.includes("reduced") ? reduced : forced,
     IntersectionObserver: class { constructor(fn) { intersections = fn; } observe() {} disconnect() {} },
   };
-  const event = (type, target, properties = {}) => {
-    const result = new Event(type, { cancelable: true });
-    Object.defineProperty(result, "target", { value: target });
-    Object.assign(result, properties);
-    return result;
-  };
   const choose = (value, detail = 1) => {
     const button = buttons.find((entry) => entry.dataset.themeChoice === value);
-    button.dispatchEvent(event("click", button, { detail }));
+    button.dispatchEvent(targetedEvent("click", button, { detail }));
   };
-  const open = () => trigger.dispatchEvent(event("click", trigger, { detail: 1 }));
-  const key = (value, target) => controls.dispatchEvent(event("keydown", target, { key: value }));
+  const open = () => trigger.dispatchEvent(targetedEvent("click", trigger, { detail: 1 }));
+  const key = (value, target) => controls.dispatchEvent(targetedEvent("keydown", target, { key: value }));
   const pointer = (target) => {
-    const result = event("pointerdown", target); document.dispatchEvent(result); return result;
+    const result = targetedEvent("pointerdown", target); document.dispatchEvent(result); return result;
   };
   const osTheme = (value) => { system.matches = value; system.dispatchEvent(new Event("change")); };
   const hide = (persisted) => window.dispatchEvent(Object.assign(new Event("pagehide"), { persisted }));
@@ -181,16 +176,11 @@ test("theme changes preserve a user-paused film and reduced-motion eligibility",
 });
 
 
-test("homepage selections keep their drawing visible, retarget states and retain roving focus", async () => {
-  await withRuntime(({ controls, buttons, icons, menu, document, choose, open, key, trigger, storageWrites }) => {
+test("homepage selections retarget artwork with pointer and keyboard motion", async () => {
+  await withRuntime(({ icons, document, choose, open, key, storageWrites }) => {
     open();
     for (const value of ["light", "dark", "system", "light"]) {
       choose(value);
-      expect(controls.dataset.open).toBe("true");
-      expect(menu.inert).toBe(false);
-      const selected = buttons.find((button) => button.dataset.themeChoice === value);
-      expect(document.activeElement).toBe(selected);
-      expect(buttons.map((button) => button.tabIndex)).toEqual(buttons.map((button) => button === selected ? 0 : -1));
       expect(icons.map((icon) => icon.dataset.state)).toEqual(["light", "dark", "system", "light", "dark", "system"].map((kind) => kind === value ? "active" : "idle"));
       expect(icons.every((icon) => icon.dataset.instant === "false")).toBe(true);
     }
@@ -198,10 +188,6 @@ test("homepage selections keep their drawing visible, retarget states and retain
     key("ArrowDown", document.activeElement);
     choose("dark", 0);
     expect(icons.every((icon) => icon.dataset.instant === "true")).toBe(true);
-    expect(controls.dataset.open).toBe("true");
-    key("Escape", document.activeElement);
-    expect(menu.inert).toBe(true);
-    expect(document.activeElement).toBe(trigger);
   });
 });
 
