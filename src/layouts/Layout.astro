@@ -25,6 +25,7 @@ const proposal = getProposalConfig(Astro.url);
 <!doctype html>
 <html lang="en" class={proposal.enabled ? (proposal.theme === "dark" ? "dark" : "") : "dark"}
   data-proposal={proposal.enabled ? "" : undefined}
+  data-paper={proposal.enabled ? proposal.paper : undefined}
   data-proposal-theme={proposal.enabled ? proposal.theme : undefined}
   data-fallback={proposal.enabled && proposal.fallback ? "" : undefined}>
   <head>

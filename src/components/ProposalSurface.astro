@@ -64,6 +64,26 @@ import ChevronRight from "./icons/ChevronRight.astro";
     z-index: -1;
     overflow: hidden;
   }
+  /* Two shallow folds: narrow ridges and soft shoulders, baked into static paint.
+     ?paper=clean keeps the approved fiber-only comparison on the same build. */
+  html[data-paper="creased"] .proposal-decoration::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    --crease-shadow: rgb(80 70 58 / 0.055);
+    --crease-light: rgb(255 255 252 / 0.7);
+    background:
+      linear-gradient(91deg,
+        transparent calc(26% - 12px), var(--crease-light) calc(26% - 2px),
+        var(--crease-shadow) 26%, transparent calc(26% + 10px)),
+      linear-gradient(179.5deg,
+        transparent calc(35% - 10px), var(--crease-light) calc(35% - 1px),
+        var(--crease-shadow) 35%, transparent calc(35% + 12px));
+  }
+  html.dark[data-paper="creased"] .proposal-decoration::after {
+    --crease-shadow: rgb(0 0 0 / 0.2);
+    --crease-light: rgb(130 112 85 / 0.07);
+  }
   .proposal-paper, .proposal-paper-fallback { position: absolute; inset: 0; }
   .proposal-paper { visibility: hidden; }
   .proposal-paper canvas { z-index: 0; }
