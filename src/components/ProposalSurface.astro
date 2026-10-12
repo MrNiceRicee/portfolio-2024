@@ -217,8 +217,10 @@ import ChevronRight from "./icons/ChevronRight.astro";
     import("../scripts/proposalRuntime").then(({ initializeProposalRuntime }) => {
       if (lifetime.signal.aborted) return;
       return initializeProposalRuntime(lifetime.signal);
-    }).catch(() => {
+    }).catch((error) => {
       if (lifetime.signal.aborted) return;
+      root.dataset.shaderFailure = "runtime-initialization";
+      console.warn("[Portfolio paper] Runtime initialization failed", error);
       root.dataset.shaderStatus = "fallback";
       root.dataset.filmMotion = "paused";
       document.dispatchEvent(new Event("proposalshaderchange"));

@@ -12,6 +12,7 @@ export async function initializeProposalShaders(signal: AbortSignal) {
   const crumpled = root.dataset.paper === "crumpled";
   let paper: ShaderMount | undefined;
   let themeObserver: MutationObserver | undefined;
+  let stage = "noise-texture";
 
   function themeUniforms(dark: boolean) {
     const color = getShaderColorFromString(dark ? "#0c0a09" : "#fafaf9");
@@ -28,11 +29,17 @@ export async function initializeProposalShaders(signal: AbortSignal) {
 
   function setStatus(status: "loading" | "ready" | "fallback") {
     if (signal.aborted) return;
+    if (status !== "fallback") delete root.dataset.shaderFailure;
     root.dataset.shaderStatus = status;
     document.dispatchEvent(new Event("proposalshaderchange"));
   }
 
-  function fallback() {
+  function fallback(reason?: string, error?: unknown) {
+    // Keep failure evidence after removing the failed canvas. Normal teardown is silent.
+    if (!signal.aborted && reason) {
+      root.dataset.shaderFailure = reason;
+      console.warn(`[Portfolio paper] Fallback at ${reason}`, error ?? "");
+    }
     themeObserver?.disconnect();
     paper?.dispose();
     paper = undefined;
@@ -40,14 +47,16 @@ export async function initializeProposalShaders(signal: AbortSignal) {
     setStatus("fallback");
   }
 
-  signal.addEventListener("abort", fallback, { once: true });
+  signal.addEventListener("abort", () => fallback(), { once: true });
   setStatus("loading");
 
   try {
     const noise = getShaderNoiseTexture();
     if (!noise) throw new Error("Paper noise texture unavailable");
+    stage = "noise-decode";
     await noise.decode();
     if (signal.aborted) return;
+    stage = "uniforms";
     let dark = root.classList.contains("dark");
     const uniforms = {
       u_fit: ShaderFitOptions.cover, u_scale: 1, u_rotation: 0,
@@ -63,6 +72,7 @@ export async function initializeProposalShaders(signal: AbortSignal) {
       u_wrinkleSize: 0.18, u_crumpleCount: 15, u_drops: 0,
       u_noiseTexture: noise,
     } satisfies PaperTextureUniforms & { u_imageAspectRatio: number };
+    stage = "mount";
     paper = new ShaderMount(host, paperTextureFragmentShader, uniforms,
       { alpha: false, antialias: false, preserveDrawingBuffer: false }, 0, 0, 1, 600_000);
     themeObserver = new MutationObserver(() => {
@@ -71,13 +81,14 @@ export async function initializeProposalShaders(signal: AbortSignal) {
       dark = nextDark;
       try {
         paper.setUniforms(themeUniforms(dark));
-      } catch {
-        fallback();
+      } catch (error) {
+        fallback("theme-uniforms", error);
       }
     });
     themeObserver.observe(root, { attributes: true, attributeFilter: ["class"] });
     paper.canvasElement.setAttribute("aria-hidden", "true");
-    paper.canvasElement.addEventListener("webglcontextlost", fallback, { once: true });
+    paper.canvasElement.addEventListener("webglcontextlost", () => fallback("context-lost"), { once: true });
+    stage = "first-frame";
     // let the vendor resize observer establish the viewport resolution first
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     if (signal.aborted || !paper) return;
@@ -86,13 +97,15 @@ export async function initializeProposalShaders(signal: AbortSignal) {
     const gl = paper.canvasElement.getContext("webgl2");
     // 0.0.81 consumes upload errors; its private texture map confirms successful noise upload
     const textures: unknown = Reflect.get(paper, "textures");
-    if (!gl || !(textures instanceof Map) || !textures.has("u_noiseTexture")
-      || !gl.getParameter(gl.CURRENT_PROGRAM) || gl.getError() !== gl.NO_ERROR) {
-      fallback();
-      return;
+    if (!gl) { fallback("webgl-context"); return; }
+    if (!(textures instanceof Map) || !textures.has("u_noiseTexture")) {
+      fallback("noise-upload"); return;
     }
+    if (!gl.getParameter(gl.CURRENT_PROGRAM)) { fallback("shader-program"); return; }
+    const glError = gl.getError();
+    if (glError !== gl.NO_ERROR) { fallback("webgl-error", glError); return; }
     setStatus("ready");
-  } catch {
-    fallback();
+  } catch (error) {
+    fallback(stage, error);
   }
 }
