@@ -15,8 +15,9 @@ export async function initializeProposalShaders(signal: AbortSignal) {
     const color = getShaderColorFromString(dark ? "#0c0a09" : "#fafaf9");
     return {
       u_colorBack: color, u_colorPaper: color,
-      u_colorShadow: getShaderColorFromString(dark ? "#40382d" : "#b1a797"),
-      u_fiber: dark ? 0.08 : 0.22, u_fiberSize: dark ? 0.35 : 0.55,
+      u_colorShadow: getShaderColorFromString(dark ? "#40382d" : "#b8b8b5"),
+      u_fiber: dark ? 0.08 : 0.14, u_fiberSize: dark ? 0.35 : 0.1,
+      u_roughness: dark ? 0.04 : 0,
     };
   }
 
@@ -51,7 +52,7 @@ export async function initializeProposalShaders(signal: AbortSignal) {
       u_image: undefined, u_imageAspectRatio: 1, u_isImage: false, u_clip: false,
       ...themeUniforms(dark),
       u_blending: 0, u_distortion: 0, u_angle: 300, u_seed: 4,
-      u_roughness: 0.04, u_roughnessSize: 0.3, u_roughnessRows: 0,
+      u_roughnessSize: 0.3, u_roughnessRows: 0,
       u_folds: 0, u_foldSizeX: 0.45, u_foldSizeY: 0.55,
       u_foldOffsetX: 0, u_foldOffsetY: 0,
       u_wrinkles: 0, u_wrinkleSize: 0.4,

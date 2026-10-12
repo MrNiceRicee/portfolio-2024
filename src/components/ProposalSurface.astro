@@ -75,7 +75,7 @@ import ChevronRight from "./icons/ChevronRight.astro";
     background-size: 768px 768px;
   }
   html.dark[data-proposal] .proposal-paper-fallback { filter: invert(1); opacity: 0.2; }
-  /* stationary fibers share the document with the ink */
+  /* dark-mode stationary grain */
   .proposal-fibers {
     position: absolute;
     inset: 0;
@@ -83,7 +83,7 @@ import ChevronRight from "./icons/ChevronRight.astro";
     pointer-events: none;
     background-image: var(--fiber-grain);
     background-size: 160px 160px;
-    opacity: 0.12;
+    opacity: 0;
     mix-blend-mode: multiply;
   }
   html.dark[data-proposal] .proposal-fibers { mix-blend-mode: screen; opacity: 0.08; }
