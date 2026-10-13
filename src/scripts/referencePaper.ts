@@ -1,4 +1,3 @@
-const wrap = (value: number, size: number) => ((value % size) + size) % size;
 const hash = (value: number, seed: number) => {
   let n = Math.imul(value, 374761393) ^ seed;
   n = Math.imul(n ^ (n >>> 13), 1274126177);
@@ -21,24 +20,21 @@ export function preparePaper(source: Uint8ClampedArray, size: number) {
   return pixels;
 }
 
-/** Seed varies placement and orientation of existing folds, not their topology. */
-export function* samplePaper(source: Uint8ClampedArray, size: number, seed: number) {
-  const pixels = new Uint8ClampedArray(source.length);
-  const ox = hash(1, seed) % size, oy = hash(2, seed) % size;
-  const turn = hash(3, seed) % 4, mirror = hash(4, seed) % 2;
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      let u = mirror ? size - 1 - x : x, v = y;
-      for (let rotation = 0; rotation < turn; rotation++) [u, v] = [size - 1 - v, u];
-      const from = (wrap(v + oy, size) * size + wrap(u + ox, size)) * 4, to = (y * size + x) * 4;
-      for (let c = 0; c < 4; c++) pixels[to + c] = source[from + c]!;
-    }
-    if (y % 64 === 63) yield;
-  }
-  return pixels;
+/** Integer canvas transforms preserve seeded placement without resampling pixels. */
+export function drawPaper(context: CanvasRenderingContext2D, source: HTMLCanvasElement, seed: number) {
+  const size = source.width;
+  const mapping = new DOMMatrix().translate(hash(1, seed) % size, hash(2, seed) % size);
+  const turn = new DOMMatrix([0, 1, -1, 0, size, 0]);
+  for (let i = 0; i < hash(3, seed) % 4; i++) mapping.multiplySelf(turn);
+  if (hash(4, seed) % 2) mapping.multiplySelf(new DOMMatrix([-1, 0, 0, 1, size, 0]));
+  context.save();
+  context.imageSmoothingEnabled = false;
+  context.setTransform(mapping.inverse());
+  for (const x of [0, size]) for (const y of [0, size]) context.drawImage(source, x, y);
+  context.restore();
 }
 
-async function referencePixels(url: string, size: number) {
+async function referenceCanvas(url: string, size: number) {
   const image = new Image();
   image.src = url;
   await image.decode();
@@ -47,17 +43,8 @@ async function referencePixels(url: string, size: number) {
   const context = canvas.getContext("2d");
   if (!context) throw new Error("2D paper context unavailable");
   context.drawImage(image, 0, 0, size, size);
-  return preparePaper(context.getImageData(0, 0, size, size).data, size);
-}
-
-async function renderPixels(source: Uint8ClampedArray, size: number, seed: number, current: () => boolean) {
-  const work = samplePaper(source, size, seed);
-  while (current()) {
-    const step = work.next();
-    if (step.done) return step.value;
-    await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
-  }
-  return undefined;
+  context.putImageData(new ImageData(preparePaper(context.getImageData(0, 0, size, size).data, size), size, size), 0, 0);
+  return canvas;
 }
 
 export async function initializeReferencePaper() {
@@ -74,14 +61,12 @@ export async function initializeReferencePaper() {
   try {
     const size = 768, canvas = document.createElement("canvas"), context = canvas.getContext("2d");
     if (!context) return;
-    const originals = await Promise.all([referencePixels(host.dataset.paperLight!, size), referencePixels(host.dataset.paperDark!, size)]);
+    const originals = await Promise.all([referenceCanvas(host.dataset.paperLight!, size), referenceCanvas(host.dataset.paperDark!, size)]);
     if (lifetime.signal.aborted) return;
     canvas.width = canvas.height = size;
     const urls = { light: "", dark: "" };
     for (const [index, theme] of (["light", "dark"] as const).entries()) {
-      const pixels = await renderPixels(originals[index]!, size, seed, () => !lifetime.signal.aborted);
-      if (!pixels) return;
-      context.putImageData(new ImageData(pixels, size, size), 0, 0);
+      drawPaper(context, originals[index]!, seed);
       urls[theme] = canvas.toDataURL();
     }
     for (const theme of ["light", "dark"] as const) host.style.setProperty(`--crinkle-${theme}`, `url("${urls[theme]}")`);

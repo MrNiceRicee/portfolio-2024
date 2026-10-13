@@ -1,5 +1,6 @@
 ---
-import filmMaterial from "../assets/paper-fibers.png";
+import fiberLight from "../assets/paper-fibers-light.webp";
+import fiberDark from "../assets/paper-fibers-dark.webp";
 import crinkleLight from "../assets/crumpled-paper-light.webp";
 import crinkleDark from "../assets/crumpled-paper-dark.webp";
 import grain from "../assets/noise.svg";
@@ -7,8 +8,7 @@ import AppearanceIcon from "./AppearanceIcon.astro";
 import ChevronRight from "./icons/ChevronRight.astro";
 ---
 <div class="portfolio-decoration" aria-hidden="true" data-paper-light={crinkleLight.src} data-paper-dark={crinkleDark.src} style={`--crinkle-light: url("${crinkleLight.src}"); --crinkle-dark: url("${crinkleDark.src}")`}>
-  <div class="portfolio-paper-fallback" style={`--fallback-material: url("${filmMaterial.src}")`}></div>
-  <div class="portfolio-paper" data-portfolio-paper></div>
+  <div class="portfolio-paper" style={`--fiber-light: url("${fiberLight.src}"); --fiber-dark: url("${fiberDark.src}")`}></div>
 </div>
 <div class="portfolio-fibers" aria-hidden="true" style={`--fiber-grain: url("${grain.src}")`}></div>
 <div class="portfolio-film" data-portfolio-film aria-hidden="true">
@@ -81,17 +81,12 @@ import ChevronRight from "./icons/ChevronRight.astro";
     background-image: var(--crinkle-dark);
     opacity: calc(var(--crinkle-intensity) * 0.34);
   }
-  .portfolio-paper, .portfolio-paper-fallback { position: absolute; inset: 0; }
-  .portfolio-paper { visibility: hidden; }
-  .portfolio-paper canvas { z-index: 0; }
-  html[data-shader-status="ready"] .portfolio-paper { visibility: visible; }
-  html[data-shader-status="ready"] .portfolio-paper-fallback { visibility: hidden; }
-  /* an approximation for no JS or unavailable WebGL, not the Paper shader */
-  .portfolio-paper-fallback {
-    background-image: var(--fallback-material);
-    background-size: 768px 768px;
+  .portfolio-paper {
+    position: absolute;
+    inset: 0;
+    background: var(--fiber-light) repeat center / 768px 768px;
   }
-  html.dark[data-portfolio] .portfolio-paper-fallback { filter: invert(1); opacity: 0.2; }
+  html.dark .portfolio-paper { background-image: var(--fiber-dark); }
   /* dark-mode stationary grain */
   .portfolio-fibers {
     position: absolute;
@@ -225,23 +220,7 @@ import ChevronRight from "./icons/ChevronRight.astro";
 
 <script>
   import { initializeReferencePaper } from "../scripts/referencePaper";
-  const root = document.documentElement;
-  initializeReferencePaper();
-  if (root.hasAttribute("data-portfolio")) {
-    const lifetime = new AbortController();
-    window.addEventListener("pagehide", (event) => {
-      if (!event.persisted) lifetime.abort();
-    }, { signal: lifetime.signal });
-    import("../scripts/portfolioRuntime").then(({ initializePortfolioRuntime }) => {
-      if (lifetime.signal.aborted) return;
-      return initializePortfolioRuntime(lifetime.signal);
-    }).catch((error) => {
-      if (lifetime.signal.aborted) return;
-      root.dataset.shaderFailure = "runtime-initialization";
-      console.warn("[Portfolio paper] Runtime initialization failed", error);
-      root.dataset.shaderStatus = "fallback";
-      root.dataset.filmMotion = "paused";
-      document.dispatchEvent(new Event("portfolioshaderchange"));
-    });
-  }
+  import { initializePortfolioFilm } from "../scripts/portfolioFilm";
+  initializePortfolioFilm();
+  void initializeReferencePaper();
 </script>

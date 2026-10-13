@@ -3,3 +3,8 @@ Copyright 2026 Paper
 
 Powered by Paper Shaders:
 https://shaders.paper.design
+
+The static paper-fibers-light.webp and paper-fibers-dark.webp material tiles
+are rendered from Paper Shaders 0.0.81, frame 0, with the selected fiber/roughness
+uniforms and no folds, wrinkles, crumples or drops. Tiles have narrow edge
+feathering and WebP compression. The Paper license remains in LICENSE.

@@ -79,8 +79,7 @@ export function initializePortfolioFilm() {
     frame = requestAnimationFrame(animate);
   };
   const update = () => {
-    const available = observer !== undefined && root.dataset.shaderStatus === "ready"
-      && !reducedMotion.matches && !forcedColors.matches;
+    const available = observer !== undefined && !reducedMotion.matches && !forcedColors.matches;
     const running = available && visible && !paused && !suspended && !document.hidden;
     root.dataset.filmMotion = running ? "running" : "paused";
     button.hidden = !available;
@@ -99,7 +98,6 @@ export function initializePortfolioFilm() {
   const options = { signal: lifecycle.signal };
   button.addEventListener("click", () => { paused = !paused; update(); }, options);
   document.addEventListener("visibilitychange", update, options);
-  document.addEventListener("portfolioshaderchange", update, options);
   reducedMotion.addEventListener("change", update, options);
   forcedColors.addEventListener("change", update, options);
   window.addEventListener("resize", resize, options);
