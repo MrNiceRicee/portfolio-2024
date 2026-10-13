@@ -1,5 +1,3 @@
-import { getPaperIntensity } from "./proposalConfig";
-
 const wrap = (value: number, size: number) => ((value % size) + size) % size;
 const hash = (value: number, seed: number) => {
   let n = Math.imul(value, 374761393) ^ seed;
@@ -64,101 +62,31 @@ async function renderPixels(source: Uint8ClampedArray, size: number, seed: numbe
 
 export async function initializeReferencePaper() {
   const root = document.documentElement;
-  const host = document.querySelector<HTMLElement>(".proposal-decoration");
-  if (!host || root.dataset.paper !== "crumpled" || root.hasAttribute("data-fallback")) return;
-  let seed = Number(host.dataset.crinkleSeed), frequency = Number(host.dataset.crinkleFrequency);
-  const tuner = document.querySelector<HTMLElement>("[data-paper-tuning]");
-  const intensity = tuner?.querySelector<HTMLInputElement>("#crinkle-intensity");
-  let override = host.dataset.crinkleIntensity === undefined ? undefined : Number(host.dataset.crinkleIntensity);
-  if (intensity) {
-    intensity.value = String(getPaperIntensity(root.classList.contains("dark"), override));
-    const output = tuner?.querySelector<HTMLOutputElement>("[data-crinkle-output]");
-    if (output) output.value = `${intensity.value}%`;
-  }
-  const density = tuner?.querySelector<HTMLInputElement>("#crinkle-frequency");
-  const reroll = tuner?.querySelector<HTMLButtonElement>("[data-crinkle-reroll]");
-  const link = tuner?.querySelector<HTMLAnchorElement>("[data-crinkle-link]");
-  const status = tuner?.querySelector<HTMLElement>("[data-paper-status]");
-  const backup = { light: host.style.getPropertyValue("--crinkle-light"), dark: host.style.getPropertyValue("--crinkle-dark") };
-  const fallback = () => {
-    for (const theme of ["light", "dark"] as const) host.style.setProperty(`--crinkle-${theme}`, backup[theme]);
-    root.dataset.paperTexture = "static-fallback";
-    if (reroll) reroll.disabled = true;
-    if (status) status.hidden = false;
-    if (link) link.textContent = "Save/share these settings";
-    return false;
-  };
-  const lifetime = new AbortController(), options = { signal: lifetime.signal };
-  let generation = 0;
+  const host = document.querySelector<HTMLElement>(".portfolio-decoration");
+  if (!host) return;
+  const seed = crypto.getRandomValues(new Uint32Array(1))[0]!;
+  host.dataset.paperSeed = String(seed);
+  const lifetime = new AbortController();
   window.addEventListener("pagehide", (event) => {
-    if (!event.persisted) { generation++; lifetime.abort(); }
-  }, options);
-  const canvas = document.createElement("canvas"), context = canvas.getContext("2d");
-  const size = 768;
-  // Decode each existing asset once; subsequent rerolls reuse its cached pixels.
-  let sources: Promise<Uint8ClampedArray[]> | undefined;
-  const render = async () => {
-    const request = ++generation, requestedSeed = seed;
-    if (!context) return fallback();
-    try {
-      sources ??= Promise.all([referencePixels(host.dataset.crinkleLight!, size), referencePixels(host.dataset.crinkleDark!, size)]);
-      const originals = await sources;
-      if (request !== generation || lifetime.signal.aborted) return false;
-      canvas.width = canvas.height = size;
-      const urls = { light: "", dark: "" };
-      for (const [index, theme] of (["light", "dark"] as const).entries()) {
-        const pixels = await renderPixels(originals[index]!, size, requestedSeed, () => request === generation && !lifetime.signal.aborted);
-        if (!pixels) return false;
-        context.putImageData(new ImageData(pixels, size, size), 0, 0);
-        urls[theme] = canvas.toDataURL();
-      }
-      for (const theme of ["light", "dark"] as const) host.style.setProperty(`--crinkle-${theme}`, `url("${urls[theme]}")`);
-      host.dataset.crinkleSeed = String(requestedSeed);
-      host.dataset.crinkleFrequency = String(frequency);
-      root.dataset.paperTexture = "reference";
-      if (status) status.hidden = true;
-      return true;
-    } catch (error) {
-      if (request !== generation || lifetime.signal.aborted) return false;
-      console.warn("[Portfolio paper] Reference texture failed", error); return fallback();
-    }
-  };
+    if (!event.persisted) lifetime.abort();
+  }, { signal: lifetime.signal });
   root.dataset.paperTexture = "static-fallback";
-  const available = await render();
-  if (lifetime.signal.aborted) return;
-  host.style.setProperty("--crinkle-size", `${768 * Math.sqrt(6 / frequency)}px`);
-  if (!tuner || !intensity || !density || !reroll || !link) return;
-  const update = () => {
-    host.style.setProperty("--crinkle-size", `${768 * Math.sqrt(6 / frequency)}px`);
-    host.dataset.crinkleFrequency = String(frequency);
-    intensity.value = String(getPaperIntensity(root.classList.contains("dark"), override));
-    if (override === undefined) host.style.removeProperty("--crinkle-intensity");
-    else host.style.setProperty("--crinkle-intensity", String(override / 100));
-    tuner.querySelector<HTMLOutputElement>("[data-crinkle-output]")!.value = `${intensity.value}%`;
-    tuner.querySelector<HTMLOutputElement>("[data-frequency-output]")!.value = String(frequency);
-    tuner.querySelector<HTMLOutputElement>("[data-seed-output]")!.value = String(seed);
-    const url = new URL(window.location.href);
-    if (override === undefined) url.searchParams.delete("crinkles");
-    else url.searchParams.set("crinkles", String(override));
-    url.searchParams.set("frequency", String(frequency));
-    url.searchParams.set("seed", String(seed));
-    link.href = url.href;
-    link.textContent = root.dataset.paperTexture === "reference" ? "Save/share this pattern" : "Save/share these settings";
-  };
-  intensity.addEventListener("input", () => { override = Number(intensity.value); update(); }, options);
-  const appearance = new MutationObserver(update);
-  appearance.observe(root, { attributes: true, attributeFilter: ["class"] });
-  lifetime.signal.addEventListener("abort", () => appearance.disconnect(), { once: true });
-  density.addEventListener("input", () => {
-    frequency = Number(density.value); update();
-  }, options);
-  reroll.addEventListener("click", () => {
-    const next = crypto.getRandomValues(new Uint32Array(1))[0]!;
-    seed = next === seed ? (seed + 1) >>> 0 : next;
-    void render(); update();
-  }, options);
-  intensity.disabled = false;
-  density.disabled = false;
-  reroll.disabled = !available;
-  update();
+  try {
+    const size = 768, canvas = document.createElement("canvas"), context = canvas.getContext("2d");
+    if (!context) return;
+    const originals = await Promise.all([referencePixels(host.dataset.paperLight!, size), referencePixels(host.dataset.paperDark!, size)]);
+    if (lifetime.signal.aborted) return;
+    canvas.width = canvas.height = size;
+    const urls = { light: "", dark: "" };
+    for (const [index, theme] of (["light", "dark"] as const).entries()) {
+      const pixels = await renderPixels(originals[index]!, size, seed, () => !lifetime.signal.aborted);
+      if (!pixels) return;
+      context.putImageData(new ImageData(pixels, size, size), 0, 0);
+      urls[theme] = canvas.toDataURL();
+    }
+    for (const theme of ["light", "dark"] as const) host.style.setProperty(`--crinkle-${theme}`, `url("${urls[theme]}")`);
+    root.dataset.paperTexture = "reference";
+  } catch (error) {
+    if (!lifetime.signal.aborted) console.warn("[Portfolio paper] Reference texture unavailable", error);
+  }
 }

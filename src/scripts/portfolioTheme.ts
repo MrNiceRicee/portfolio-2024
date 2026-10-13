@@ -52,14 +52,6 @@ export function initializePortfolioTheme() {
     if (preference === value) { event.stopImmediatePropagation(); return; }
     preference = value;
     try { window.localStorage.setItem("portfolio-theme", preference); } catch {}
-    // a preview must not override an intentional choice on the next reload
-    try {
-      const url = new URL(window.location.href);
-      if (url.searchParams.has("theme")) {
-        url.searchParams.delete("theme");
-        window.history.replaceState(window.history.state, "", url.href);
-      }
-    } catch {}
     update(event.detail === 0);
   }, options));
   // current-choice activation must not interrupt an in-flight drawing

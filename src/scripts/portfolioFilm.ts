@@ -25,12 +25,12 @@ class FilmParticle {
 }
 
 /** one lifetime gates both CSS grain and the optional particle canvas */
-export function initializeProposalFilm() {
+export function initializePortfolioFilm() {
   const root = document.documentElement;
-  const host = document.querySelector<HTMLElement>("[data-proposal-film]");
+  const host = document.querySelector<HTMLElement>("[data-portfolio-film]");
   const button = document.querySelector<HTMLButtonElement>("[data-pause-film]");
-  if (!host || !button || root.hasAttribute("data-fallback")) return;
-  const canvas = document.querySelector<HTMLCanvasElement>("[data-proposal-particles]");
+  if (!host || !button) return;
+  const canvas = document.querySelector<HTMLCanvasElement>("[data-portfolio-particles]");
   let ctx: CanvasRenderingContext2D | null = null;
   // unavailable canvas leaves the CSS grain and pause control usable
   try { ctx = canvas?.getContext("2d") ?? null; } catch {}
@@ -99,7 +99,7 @@ export function initializeProposalFilm() {
   const options = { signal: lifecycle.signal };
   button.addEventListener("click", () => { paused = !paused; update(); }, options);
   document.addEventListener("visibilitychange", update, options);
-  document.addEventListener("proposalshaderchange", update, options);
+  document.addEventListener("portfolioshaderchange", update, options);
   reducedMotion.addEventListener("change", update, options);
   forcedColors.addEventListener("change", update, options);
   window.addEventListener("resize", resize, options);

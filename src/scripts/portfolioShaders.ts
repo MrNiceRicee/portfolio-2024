@@ -4,10 +4,10 @@ import {
 } from "@paper-design/shaders";
 
 /** one static paper mount; the separate CSS film never changes shader time */
-export async function initializeProposalShaders(signal: AbortSignal) {
+export async function initializePortfolioShaders(signal: AbortSignal) {
   const root = document.documentElement;
-  const host = document.querySelector<HTMLElement>("[data-proposal-paper]");
-  if (signal.aborted || !host || root.hasAttribute("data-fallback")) return;
+  const host = document.querySelector<HTMLElement>("[data-portfolio-paper]");
+  if (signal.aborted || !host) return;
   let paper: ShaderMount | undefined;
   let themeObserver: MutationObserver | undefined;
   let stage = "noise-texture";
@@ -28,7 +28,7 @@ export async function initializeProposalShaders(signal: AbortSignal) {
     if (signal.aborted) return;
     if (status !== "fallback") delete root.dataset.shaderFailure;
     root.dataset.shaderStatus = status;
-    document.dispatchEvent(new Event("proposalshaderchange"));
+    document.dispatchEvent(new Event("portfolioshaderchange"));
   }
 
   function fallback(reason?: string, error?: unknown) {
