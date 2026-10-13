@@ -71,8 +71,9 @@ BUN_VERSION = "1.4.2"
 
 ######## PRODUCTION environment config ########
 
-# [env.production.vars]
-# API_KEY = "abc123"
+[env.production.vars]
+# Match preview: the committed binary lockfile requires the tested Bun version.
+BUN_VERSION = "1.4.2"
 
 # [[env.production.kv_namespaces]]
 # binding = "MY_KV_NAMESPACE"
