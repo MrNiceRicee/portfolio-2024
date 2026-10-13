@@ -86,7 +86,7 @@ tunedURL.searchParams.set("seed", String(proposal.paperSeed));
     content: "";
     position: absolute;
     inset: 0;
-    background: var(--crinkle-light) repeat center / 768px 768px;
+    background: var(--crinkle-light) repeat center / var(--crinkle-width, 768px) var(--crinkle-size, 768px);
     opacity: var(--crinkle-intensity, 0.5);
   }
   html.dark[data-paper="crumpled"] .proposal-decoration::after {
