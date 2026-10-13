@@ -5,14 +5,16 @@ import crinkleDark from "../assets/crumpled-paper-dark.webp";
 import grain from "../assets/noise.svg";
 import AppearanceIcon from "./AppearanceIcon.astro";
 import ChevronRight from "./icons/ChevronRight.astro";
-import { getProposalConfig } from "../scripts/proposalConfig";
+import { getProposalConfig, getPaperIntensity } from "../scripts/proposalConfig";
 const proposal = getProposalConfig(Astro.url);
 const tunedURL = new URL(Astro.url);
-tunedURL.searchParams.set("crinkles", String(proposal.crinkleIntensity));
+if (proposal.crinkleIntensity !== undefined) tunedURL.searchParams.set("crinkles", String(proposal.crinkleIntensity));
+else tunedURL.searchParams.delete("crinkles");
+const initialIntensity = getPaperIntensity(proposal.theme === "dark", proposal.crinkleIntensity);
 tunedURL.searchParams.set("frequency", String(proposal.paperFrequency));
 tunedURL.searchParams.set("seed", String(proposal.paperSeed));
 ---
-<div class="proposal-decoration" aria-hidden="true" data-crinkle-light={crinkleLight.src} data-crinkle-dark={crinkleDark.src} data-crinkle-seed={proposal.paperSeed} data-crinkle-frequency={proposal.paperFrequency} style={`--crinkle-size: ${768 * Math.sqrt(6 / proposal.paperFrequency)}px; --crinkle-intensity: ${proposal.crinkleIntensity / 100}; --crinkle-light: url("${crinkleLight.src}"); --crinkle-dark: url("${crinkleDark.src}")`}>
+<div class="proposal-decoration" aria-hidden="true" data-crinkle-intensity={proposal.crinkleIntensity} data-crinkle-light={crinkleLight.src} data-crinkle-dark={crinkleDark.src} data-crinkle-seed={proposal.paperSeed} data-crinkle-frequency={proposal.paperFrequency} style={`--crinkle-size: ${768 * Math.sqrt(6 / proposal.paperFrequency)}px; ${proposal.crinkleIntensity === undefined ? "" : `--crinkle-intensity: ${proposal.crinkleIntensity / 100};`} --crinkle-light: url("${crinkleLight.src}"); --crinkle-dark: url("${crinkleDark.src}")`}>
   <div class="proposal-paper-fallback" style={`--fallback-material: url("${filmMaterial.src}")`}></div>
   <div class="proposal-paper" data-proposal-paper></div>
 </div>
@@ -46,8 +48,8 @@ tunedURL.searchParams.set("seed", String(proposal.paperSeed));
     </div>
   </div>
   {proposal.tunePaper && proposal.paper === "crumpled" && !proposal.fallback && <div class="proposal-tuning" data-paper-tuning>
-    <div class="proposal-tuning-heading"><label for="crinkle-intensity">Crinkle intensity</label><output for="crinkle-intensity" data-crinkle-output>{proposal.crinkleIntensity}%</output></div>
-    <input id="crinkle-intensity" type="range" min="0" max="100" step="1" value={proposal.crinkleIntensity} disabled />
+    <div class="proposal-tuning-heading"><label for="crinkle-intensity">Crinkle intensity</label><output for="crinkle-intensity" data-crinkle-output>{initialIntensity}%</output></div>
+    <input id="crinkle-intensity" type="range" min="0" max="100" step="1" value={initialIntensity} disabled />
     <div class="proposal-tuning-heading"><label for="crinkle-frequency">Crease density</label><output for="crinkle-frequency" data-frequency-output>{proposal.paperFrequency}</output></div>
     <input id="crinkle-frequency" type="range" min="2" max="12" step="1" value={proposal.paperFrequency} disabled />
     <div class="proposal-tuning-heading"><span>Seed <output data-seed-output aria-live="polite">{proposal.paperSeed}</output></span><button type="button" data-crinkle-reroll disabled>Vary pattern</button></div>
@@ -76,6 +78,7 @@ tunedURL.searchParams.set("seed", String(proposal.paperSeed));
     background-color: var(--proposal-paper);
   }
   .proposal-decoration {
+    --crinkle-intensity: 0.3;
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -88,11 +91,12 @@ tunedURL.searchParams.set("seed", String(proposal.paperSeed));
     position: absolute;
     inset: 0;
     background: var(--crinkle-light) repeat center / var(--crinkle-size, 768px) var(--crinkle-size, 768px);
-    opacity: var(--crinkle-intensity, 0.5);
+    opacity: var(--crinkle-intensity);
   }
+  html.dark .proposal-decoration { --crinkle-intensity: 0.4; }
   html.dark[data-paper="crumpled"] .proposal-decoration::after {
     background-image: var(--crinkle-dark);
-    opacity: calc(var(--crinkle-intensity, 0.5) * 0.34);
+    opacity: calc(var(--crinkle-intensity) * 0.34);
   }
   .proposal-paper, .proposal-paper-fallback { position: absolute; inset: 0; }
   .proposal-paper { visibility: hidden; }

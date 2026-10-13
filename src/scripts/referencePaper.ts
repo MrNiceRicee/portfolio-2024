@@ -1,3 +1,5 @@
+import { getPaperIntensity } from "./proposalConfig";
+
 const wrap = (value: number, size: number) => ((value % size) + size) % size;
 const hash = (value: number, seed: number) => {
   let n = Math.imul(value, 374761393) ^ seed;
@@ -67,6 +69,12 @@ export async function initializeReferencePaper() {
   let seed = Number(host.dataset.crinkleSeed), frequency = Number(host.dataset.crinkleFrequency);
   const tuner = document.querySelector<HTMLElement>("[data-paper-tuning]");
   const intensity = tuner?.querySelector<HTMLInputElement>("#crinkle-intensity");
+  let override = host.dataset.crinkleIntensity === undefined ? undefined : Number(host.dataset.crinkleIntensity);
+  if (intensity) {
+    intensity.value = String(getPaperIntensity(root.classList.contains("dark"), override));
+    const output = tuner?.querySelector<HTMLOutputElement>("[data-crinkle-output]");
+    if (output) output.value = `${intensity.value}%`;
+  }
   const density = tuner?.querySelector<HTMLInputElement>("#crinkle-frequency");
   const reroll = tuner?.querySelector<HTMLButtonElement>("[data-crinkle-reroll]");
   const link = tuner?.querySelector<HTMLAnchorElement>("[data-crinkle-link]");
@@ -123,18 +131,24 @@ export async function initializeReferencePaper() {
   const update = () => {
     host.style.setProperty("--crinkle-size", `${768 * Math.sqrt(6 / frequency)}px`);
     host.dataset.crinkleFrequency = String(frequency);
-    host.style.setProperty("--crinkle-intensity", String(Number(intensity.value) / 100));
+    intensity.value = String(getPaperIntensity(root.classList.contains("dark"), override));
+    if (override === undefined) host.style.removeProperty("--crinkle-intensity");
+    else host.style.setProperty("--crinkle-intensity", String(override / 100));
     tuner.querySelector<HTMLOutputElement>("[data-crinkle-output]")!.value = `${intensity.value}%`;
     tuner.querySelector<HTMLOutputElement>("[data-frequency-output]")!.value = String(frequency);
     tuner.querySelector<HTMLOutputElement>("[data-seed-output]")!.value = String(seed);
     const url = new URL(window.location.href);
-    url.searchParams.set("crinkles", intensity.value);
+    if (override === undefined) url.searchParams.delete("crinkles");
+    else url.searchParams.set("crinkles", String(override));
     url.searchParams.set("frequency", String(frequency));
     url.searchParams.set("seed", String(seed));
     link.href = url.href;
     link.textContent = root.dataset.paperTexture === "reference" ? "Save/share this pattern" : "Save/share these settings";
   };
-  intensity.addEventListener("input", update, options);
+  intensity.addEventListener("input", () => { override = Number(intensity.value); update(); }, options);
+  const appearance = new MutationObserver(update);
+  appearance.observe(root, { attributes: true, attributeFilter: ["class"] });
+  lifetime.signal.addEventListener("abort", () => appearance.disconnect(), { once: true });
   density.addEventListener("input", () => {
     frequency = Number(density.value); update();
   }, options);
