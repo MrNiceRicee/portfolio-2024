@@ -63,7 +63,7 @@
 
   document.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;
-    if (event.target.closest("astro-blurrable")) return;
+    if (event.target.closest("astro-blurrable, [data-theme-controls]")) return;
     activeSpoilers.forEach((button) => {
       setRevealed(button, false);
     });

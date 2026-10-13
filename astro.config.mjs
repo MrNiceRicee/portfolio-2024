@@ -1,7 +1,6 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from "@astrojs/cloudflare";
 import tailwind from "@astrojs/tailwind";
-import react from "@astrojs/react";
 
 import playformCompress from "@playform/compress";
 
@@ -13,7 +12,7 @@ export default defineConfig({
       enabled: true
     }
   }),
-  integrations: [tailwind(), react(), 
+  integrations: [tailwind(),
     playformCompress({
       // the public png icons already contain this integration's optimized output.
       // when replacing icons, enable Image for one build and copy their dist output to public.
