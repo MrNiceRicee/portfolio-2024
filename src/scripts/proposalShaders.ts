@@ -8,8 +8,6 @@ export async function initializeProposalShaders(signal: AbortSignal) {
   const root = document.documentElement;
   const host = document.querySelector<HTMLElement>("[data-proposal-paper]");
   if (signal.aborted || !host || root.hasAttribute("data-fallback")) return;
-  // The clean comparison retains the approved fiber-only material.
-  const crumpled = root.dataset.paper === "crumpled";
   let paper: ShaderMount | undefined;
   let themeObserver: MutationObserver | undefined;
   let stage = "noise-texture";
@@ -18,12 +16,11 @@ export async function initializeProposalShaders(signal: AbortSignal) {
     const color = getShaderColorFromString(dark ? "#0c0a09" : "#fafaf9");
     return {
       u_colorBack: color, u_colorPaper: color,
-      u_colorShadow: getShaderColorFromString(dark ? "#40382d" : crumpled ? "#ccccca" : "#b8b8b5"),
+      u_colorShadow: getShaderColorFromString(dark ? "#40382d" : "#b8b8b5"),
       u_fiber: dark ? 0.08 : 0.14, u_fiberSize: dark ? 0.35 : 0.1,
       u_roughness: dark ? 0.04 : 0,
-      // Irregular larger facets plus three scales of finer creases; never animated.
-      u_crumples: crumpled ? (dark ? 0.22 : 0.32) : 0,
-      u_wrinkles: crumpled ? (dark ? 0.12 : 0.18) : 0,
+      // CSS presents the same static crinkles even when WebGL is unavailable.
+      u_crumples: 0, u_wrinkles: 0,
     };
   }
 
@@ -69,7 +66,7 @@ export async function initializeProposalShaders(signal: AbortSignal) {
       u_roughnessSize: 0.3, u_roughnessRows: 0,
       u_folds: 0, u_foldSizeX: 0.45, u_foldSizeY: 0.55,
       u_foldOffsetX: 0, u_foldOffsetY: 0,
-      u_wrinkleSize: 0.18, u_crumpleCount: 15, u_drops: 0,
+      u_wrinkleSize: 0.4, u_crumpleCount: 6, u_drops: 0,
       u_noiseTexture: noise,
     } satisfies PaperTextureUniforms & { u_imageAspectRatio: number };
     stage = "mount";

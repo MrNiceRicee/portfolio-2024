@@ -1,10 +1,12 @@
 ---
 import filmMaterial from "../assets/proposal-film.png";
+import crinkleLight from "../assets/crumpled-paper-light.webp";
+import crinkleDark from "../assets/crumpled-paper-dark.webp";
 import grain from "../assets/noise.svg";
 import AppearanceIcon from "./AppearanceIcon.astro";
 import ChevronRight from "./icons/ChevronRight.astro";
 ---
-<div class="proposal-decoration" aria-hidden="true">
+<div class="proposal-decoration" aria-hidden="true" style={`--crinkle-light: url("${crinkleLight.src}"); --crinkle-dark: url("${crinkleDark.src}")`}>
   <div class="proposal-paper-fallback" style={`--fallback-material: url("${filmMaterial.src}")`}></div>
   <div class="proposal-paper" data-proposal-paper></div>
 </div>
@@ -63,6 +65,18 @@ import ChevronRight from "./icons/ChevronRight.astro";
     pointer-events: none;
     z-index: -1;
     overflow: hidden;
+  }
+  /* One static relief layer in both WebGL and fallback paths; clean hides only it. */
+  html[data-paper="crumpled"] .proposal-decoration::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--crinkle-light) repeat center / 768px 768px;
+    opacity: 0.65;
+  }
+  html.dark[data-paper="crumpled"] .proposal-decoration::after {
+    background-image: var(--crinkle-dark);
+    opacity: 0.22;
   }
   .proposal-paper, .proposal-paper-fallback { position: absolute; inset: 0; }
   .proposal-paper { visibility: hidden; }
