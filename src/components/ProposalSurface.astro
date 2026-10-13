@@ -9,8 +9,10 @@ import { getProposalConfig } from "../scripts/proposalConfig";
 const proposal = getProposalConfig(Astro.url);
 const tunedURL = new URL(Astro.url);
 tunedURL.searchParams.set("crinkles", String(proposal.crinkleIntensity));
+tunedURL.searchParams.set("frequency", String(proposal.paperFrequency));
+tunedURL.searchParams.set("seed", String(proposal.paperSeed));
 ---
-<div class="proposal-decoration" aria-hidden="true" style={`--crinkle-intensity: ${proposal.crinkleIntensity / 100}; --crinkle-light: url("${crinkleLight.src}"); --crinkle-dark: url("${crinkleDark.src}")`}>
+<div class="proposal-decoration" aria-hidden="true" data-crinkle-seed={proposal.paperSeed} data-crinkle-frequency={proposal.paperFrequency} style={`--crinkle-intensity: ${proposal.crinkleIntensity / 100}; --crinkle-light: url("${crinkleLight.src}"); --crinkle-dark: url("${crinkleDark.src}")`}>
   <div class="proposal-paper-fallback" style={`--fallback-material: url("${filmMaterial.src}")`}></div>
   <div class="proposal-paper" data-proposal-paper></div>
 </div>
@@ -46,7 +48,11 @@ tunedURL.searchParams.set("crinkles", String(proposal.crinkleIntensity));
   {proposal.tunePaper && proposal.paper === "crumpled" && !proposal.fallback && <div class="proposal-tuning" data-paper-tuning>
     <div class="proposal-tuning-heading"><label for="crinkle-intensity">Crinkle intensity</label><output for="crinkle-intensity" data-crinkle-output>{proposal.crinkleIntensity}%</output></div>
     <input id="crinkle-intensity" type="range" min="0" max="100" step="1" value={proposal.crinkleIntensity} disabled />
-    <a href={tunedURL.href} data-crinkle-link>Preview at {proposal.crinkleIntensity}%</a>
+    <div class="proposal-tuning-heading"><label for="crinkle-frequency">Crease density</label><output for="crinkle-frequency" data-frequency-output>{proposal.paperFrequency}</output></div>
+    <input id="crinkle-frequency" type="range" min="2" max="12" step="1" value={proposal.paperFrequency} disabled />
+    <div class="proposal-tuning-heading"><span>Seed <output data-seed-output aria-live="polite">{proposal.paperSeed}</output></span><button type="button" data-crinkle-reroll disabled>Reroll pattern</button></div>
+    <span data-paper-status role="status" hidden>Seeded texture unavailable; showing static paper.</span>
+    <a href={tunedURL.href} data-crinkle-link>Save/share this pattern</a>
   </div>}
   <button class="proposal-pause" type="button" data-pause-film hidden>Pause film</button>
 </div>
@@ -128,6 +134,7 @@ tunedURL.searchParams.set("crinkles", String(proposal.crinkleIntensity));
   .proposal-tuning { display: grid; gap: 4px; font-size: 12px; }
   .proposal-tuning-heading { display: flex; justify-content: space-between; gap: 16px; }
   .proposal-tuning input { width: 200px; min-height: 44px; accent-color: var(--focus-ink); }
+  .proposal-tuning button { font: inherit; color: inherit; background: transparent; border: 1px solid currentColor; min-height: 44px; padding: 4px 8px; }
   .proposal-tuning a { text-decoration: underline; text-underline-offset: 3px; }
   .proposal-appearance { position: relative; min-width: 0; }
   .proposal-appearance-trigger {
@@ -235,28 +242,9 @@ tunedURL.searchParams.set("crinkles", String(proposal.crinkleIntensity));
 </style>
 
 <script>
+  import { initializeProceduralPaper } from "../scripts/proceduralPaper";
   const root = document.documentElement;
-  const tuning = document.querySelector<HTMLElement>("[data-paper-tuning]");
-  const slider = tuning?.querySelector<HTMLInputElement>("input");
-  const output = tuning?.querySelector<HTMLOutputElement>("output");
-  const link = tuning?.querySelector<HTMLAnchorElement>("[data-crinkle-link]");
-  const decoration = document.querySelector<HTMLElement>(".proposal-decoration");
-  if (slider && output && link && decoration) {
-    const lifetime = new AbortController();
-    slider.addEventListener("input", () => {
-      const value = Number(slider.value);
-      decoration.style.setProperty("--crinkle-intensity", String(value / 100));
-      output.value = `${value}%`;
-      const url = new URL(window.location.href);
-      url.searchParams.set("crinkles", String(value));
-      link.href = url.href;
-      link.textContent = `Preview at ${value}%`;
-    }, { signal: lifetime.signal });
-    window.addEventListener("pagehide", (event) => {
-      if (!event.persisted) lifetime.abort();
-    }, { signal: lifetime.signal });
-    slider.disabled = false;
-  }
+  initializeProceduralPaper();
   if (root.hasAttribute("data-proposal") && !root.hasAttribute("data-fallback")) {
     const lifetime = new AbortController();
     window.addEventListener("pagehide", (event) => {
