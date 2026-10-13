@@ -5,8 +5,12 @@ import crinkleDark from "../assets/crumpled-paper-dark.webp";
 import grain from "../assets/noise.svg";
 import AppearanceIcon from "./AppearanceIcon.astro";
 import ChevronRight from "./icons/ChevronRight.astro";
+import { getProposalConfig } from "../scripts/proposalConfig";
+const proposal = getProposalConfig(Astro.url);
+const tunedURL = new URL(Astro.url);
+tunedURL.searchParams.set("crinkles", String(proposal.crinkleIntensity));
 ---
-<div class="proposal-decoration" aria-hidden="true" style={`--crinkle-light: url("${crinkleLight.src}"); --crinkle-dark: url("${crinkleDark.src}")`}>
+<div class="proposal-decoration" aria-hidden="true" style={`--crinkle-intensity: ${proposal.crinkleIntensity / 100}; --crinkle-light: url("${crinkleLight.src}"); --crinkle-dark: url("${crinkleDark.src}")`}>
   <div class="proposal-paper-fallback" style={`--fallback-material: url("${filmMaterial.src}")`}></div>
   <div class="proposal-paper" data-proposal-paper></div>
 </div>
@@ -39,6 +43,11 @@ import ChevronRight from "./icons/ChevronRight.astro";
       ))}
     </div>
   </div>
+  {proposal.tunePaper && proposal.paper === "crumpled" && !proposal.fallback && <div class="proposal-tuning" data-paper-tuning>
+    <div class="proposal-tuning-heading"><label for="crinkle-intensity">Crinkle intensity</label><output for="crinkle-intensity" data-crinkle-output>{proposal.crinkleIntensity}%</output></div>
+    <input id="crinkle-intensity" type="range" min="0" max="100" step="1" value={proposal.crinkleIntensity} disabled />
+    <a href={tunedURL.href} data-crinkle-link>Preview at {proposal.crinkleIntensity}%</a>
+  </div>}
   <button class="proposal-pause" type="button" data-pause-film hidden>Pause film</button>
 </div>
 
@@ -72,11 +81,11 @@ import ChevronRight from "./icons/ChevronRight.astro";
     position: absolute;
     inset: 0;
     background: var(--crinkle-light) repeat center / 768px 768px;
-    opacity: 0.65;
+    opacity: var(--crinkle-intensity, 0.5);
   }
   html.dark[data-paper="crumpled"] .proposal-decoration::after {
     background-image: var(--crinkle-dark);
-    opacity: 0.22;
+    opacity: calc(var(--crinkle-intensity, 0.5) * 0.34);
   }
   .proposal-paper, .proposal-paper-fallback { position: absolute; inset: 0; }
   .proposal-paper { visibility: hidden; }
@@ -116,6 +125,10 @@ import ChevronRight from "./icons/ChevronRight.astro";
     position: relative;
     z-index: 102;
   }
+  .proposal-tuning { display: grid; gap: 4px; font-size: 12px; }
+  .proposal-tuning-heading { display: flex; justify-content: space-between; gap: 16px; }
+  .proposal-tuning input { width: 200px; min-height: 44px; accent-color: var(--focus-ink); }
+  .proposal-tuning a { text-decoration: underline; text-underline-offset: 3px; }
   .proposal-appearance { position: relative; min-width: 0; }
   .proposal-appearance-trigger {
     display: inline-flex;
@@ -223,6 +236,27 @@ import ChevronRight from "./icons/ChevronRight.astro";
 
 <script>
   const root = document.documentElement;
+  const tuning = document.querySelector<HTMLElement>("[data-paper-tuning]");
+  const slider = tuning?.querySelector<HTMLInputElement>("input");
+  const output = tuning?.querySelector<HTMLOutputElement>("output");
+  const link = tuning?.querySelector<HTMLAnchorElement>("[data-crinkle-link]");
+  const decoration = document.querySelector<HTMLElement>(".proposal-decoration");
+  if (slider && output && link && decoration) {
+    const lifetime = new AbortController();
+    slider.addEventListener("input", () => {
+      const value = Number(slider.value);
+      decoration.style.setProperty("--crinkle-intensity", String(value / 100));
+      output.value = `${value}%`;
+      const url = new URL(window.location.href);
+      url.searchParams.set("crinkles", String(value));
+      link.href = url.href;
+      link.textContent = `Preview at ${value}%`;
+    }, { signal: lifetime.signal });
+    window.addEventListener("pagehide", (event) => {
+      if (!event.persisted) lifetime.abort();
+    }, { signal: lifetime.signal });
+    slider.disabled = false;
+  }
   if (root.hasAttribute("data-proposal") && !root.hasAttribute("data-fallback")) {
     const lifetime = new AbortController();
     window.addEventListener("pagehide", (event) => {
