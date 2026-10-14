@@ -73,7 +73,7 @@ import ChevronRight from "./icons/ChevronRight.astro";
     content: "";
     position: absolute;
     inset: 0;
-    background: var(--crinkle-light) repeat center / var(--crinkle-size, 768px) var(--crinkle-size, 768px);
+    background: var(--crinkle-light) repeat center top / var(--crinkle-size, 768px) var(--crinkle-size, 768px);
     opacity: var(--crinkle-intensity);
   }
   html.dark .portfolio-decoration { --crinkle-intensity: 0.4; --crinkle-size: 1330.21502px; }
@@ -84,7 +84,7 @@ import ChevronRight from "./icons/ChevronRight.astro";
   .portfolio-paper {
     position: absolute;
     inset: 0;
-    background: var(--fiber-light) repeat center / 768px 768px;
+    background: var(--fiber-light) repeat center top / 768px 768px;
   }
   html.dark .portfolio-paper { background-image: var(--fiber-dark); }
   /* dark-mode stationary grain */

@@ -7,11 +7,32 @@ export default {
   darkMode: 'class',
 	theme: {
     screens: {
-      ...defaultTheme.screens,
+      // keep all breakpoints in pixels, including the existing custom screens.
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px',
+      '2xl': '1536px',
       'xs': '475px',
       'phone': '320px',
     },
 		extend: {
+      // retain the existing paper and ink palette rather than the new defaults.
+      colors: {
+        stone: {
+          50: '#fafaf9',
+          800: '#292524',
+          950: '#0c0a09',
+        },
+        zinc: {
+          50: '#fafafa',
+          400: '#a1a1aa',
+          500: '#71717a',
+          600: '#52525b',
+          900: '#18181b',
+        },
+      },
+
       fontFamily: {
         mono: ['JetBrains Mono Variable', ...defaultTheme.fontFamily.mono],
       },
@@ -24,7 +45,6 @@ export default {
         inset: 0,
         content: '""',
         pointerEvents: 'none',
-        // backgroundImage: 'var(--noiseUrl)',
         backgroundImage: 'var(--noiseSvg)',
         backgroundSize: 'var(--grainy-size, 32rem)',
         backgroundBlendMode: 'screen',
@@ -41,7 +61,6 @@ export default {
         content: '""',
         pointerEvents: 'none',
         backgroundImage: 'var(--noiseSvg)',
-        // backgroundImage: 'var(--noiseUrl)',
         backgroundSize: 'var(--grainy-size,54rem)',
         backgroundBlendMode: 'screen',
         opacity: '.35',

@@ -1,6 +1,7 @@
 ---
 import Blurrable from "../components/Blurrable.astro";
 import "@fontsource-variable/jetbrains-mono";
+import "../styles/global.css";
 import noisySvg from "../assets/noise.svg";
 import GetClientTime from "../components/GetClientTime.astro";
 import PortfolioTypography from "../components/PortfolioTypography.astro";
@@ -13,7 +14,7 @@ interface Props {
 
 const { title, description = "Josh's personal site" } = Astro.props;
 
-const serverTime = new Date();
+const buildTime = new Date();
 const noiseBackgroundSvg = `url(${noisySvg.src})`;
 const darkColor = "#181615";
 const lightColor = "#ebebec";
@@ -41,7 +42,6 @@ const lightColor = "#ebebec";
       content="default"
     />
     <meta name="theme-color" id="theme-color" content={darkColor} />
-    <!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg" /> -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -91,11 +91,14 @@ const lightColor = "#ebebec";
           <span class="text-zinc-500 dark:text-zinc-400">
             Silly little guy made by
           </span>
-          <a href="gyuppii.carrd.co" target="_blank" class="underline"
-            >Gyuppii</a
+          <span class="whitespace-nowrap"><a
+              href="https://gyuppii.carrd.co"
+              target="_blank"
+              class="underline">Gyuppii</a
+            >.</span
           ><Blurrable
             ><span class="text-zinc-500 dark:text-zinc-400"
-              >. I absolutely <bold class="font-bold">love</bold> the silly little
+              >I absolutely <bold class="font-bold">love</bold> the silly little
               guy, on mobile he goes to the bottom right corner and just chills.
             </span>
           </Blurrable>
@@ -103,7 +106,7 @@ const lightColor = "#ebebec";
         <div data-type="metadata" class="space-y-2 text-sm pb-6">
           <GetClientTime />
           <p>
-            current server time <span class="tabular-nums"
+            build time <span class="tabular-nums"
               >{
                 Intl.DateTimeFormat(undefined, {
                   year: "numeric",
@@ -112,7 +115,7 @@ const lightColor = "#ebebec";
                   hour: "numeric",
                   minute: "numeric",
                   second: "numeric",
-                }).format(serverTime)
+                }).format(buildTime)
               }</span
             >
           </p>
@@ -133,8 +136,6 @@ const lightColor = "#ebebec";
   is:global
   define:vars={{
     noiseSvg: noiseBackgroundSvg,
-    darkColor,
-    lightColor,
   }}
 >
   :root {

@@ -6,7 +6,7 @@
     class="group/spoiler text-left cursor-pointer"
   >
     <span
-      class="transition-[filter] duration-200 ease-in-out group-data-[status=idle]/spoiler:blur-sm motion-reduce:transition-none"
+      class="transition-[filter] duration-200 ease-in-out group-data-[status=idle]/spoiler:blur-xs motion-reduce:transition-none"
     ><slot /></span>
   </button>
 </astro-blurrable>
@@ -52,7 +52,11 @@
     () => activeSpoilers.forEach((button) => setRevealed(button, false)),
     (event) => {
       // Native overlays and editing controls have their own Escape behavior.
-      if (document.querySelector("dialog:modal, [popover]:popover-open")) return true;
+      if (document.querySelector("dialog:modal")) return true;
+      if (
+        CSS.supports("selector(:popover-open)") &&
+        document.querySelector("[popover]:popover-open")
+      ) return true;
       return event.composedPath().some((node) =>
         node instanceof HTMLElement && (
           node.isContentEditable || node.matches("input, textarea, select")

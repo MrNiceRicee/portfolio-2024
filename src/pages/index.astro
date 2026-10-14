@@ -9,7 +9,7 @@ import PortfolioArtwork from "../components/PortfolioArtwork.astro";
 
 <Layout
   title="Josh's corner"
-  description="Josh's personal site. Fullstack developer"
+  description="Josh's personal site. Senior fullstack engineer"
 >
   <main data-portfolio-main class="my-12 sm:my-24 space-y-12">
     <header data-portfolio-hero
@@ -24,15 +24,16 @@ import PortfolioArtwork from "../components/PortfolioArtwork.astro";
       <p data-type="metadata"
         class="leading-none text-zinc-500 dark:text-zinc-400 text-xl tracking-[0.04rem]"
       >
-        Fullstack developer
+        Senior fullstack engineer
       </p>
     </header>
 
     <HeroSections title="Who am I">
       <p data-type="prose" class="text-zinc-500 dark:text-zinc-400 text-pretty">
-        I am a fullstack developer with a passion for building, learning and
+        I am a senior fullstack engineer with a passion for building, learning and
         collaborating with others. Started my journey in coding when I was 10
-        years old, writing in Lua and making games in Roblox.
+        years old, scripting and making games in Roblox
+        <Blurrable>and accidentally learning about OOP.</Blurrable>
       </p>
     </HeroSections>
 
@@ -225,6 +226,7 @@ import PortfolioArtwork from "../components/PortfolioArtwork.astro";
             </a>
             <a
               href="https://github.com/mrnicericee/barbenheimer"
+              class="project-github-link"
               target="_blank"
             >
               <Github class="w-6 h-6" />
@@ -243,14 +245,14 @@ import PortfolioArtwork from "../components/PortfolioArtwork.astro";
             complete with an Electoral College map.
             <Blurrable>
               Unfortunately, someone figured out how I would check unique votes,
-              and staretd to cheat
+              and started to cheat
             </Blurrable>
           </p>
         </li>
         <li class="flex gap-y-2 flex-col">
           <div class="flex justify-between">
             <h3 data-type="entry" class="font-medium">Foodtok</h3>
-            <a href="https://github.com/MrNiceRicee/foodtok" target="_blank">
+            <a class="project-github-link" href="https://github.com/MrNiceRicee/foodtok" target="_blank">
               <Github class="w-6 h-6" />
               <span class="sr-only">Foodtok on GitHub</span>
             </a>
@@ -276,7 +278,7 @@ import PortfolioArtwork from "../components/PortfolioArtwork.astro";
         <li class="flex gap-y-2 flex-col">
           <div class="flex justify-between">
             <h3 data-type="entry" class="font-medium">Hive Codes</h3>
-            <a href="https://github.com/MrNiceRicee/hive-codes" target="_blank">
+            <a class="project-github-link" href="https://github.com/MrNiceRicee/hive-codes" target="_blank">
               <Github class="w-6 h-6" />
               <span class="sr-only">Hive Codes on GitHub</span>
             </a>
@@ -303,6 +305,7 @@ import PortfolioArtwork from "../components/PortfolioArtwork.astro";
             <h3 data-type="entry" class="font-medium">Some Chat App</h3>
             <a
               href="https://github.com/MrNiceRicee/chatapp-monorepo"
+              class="project-github-link"
               target="_blank"
             >
               <Github class="w-6 h-6" />
@@ -356,6 +359,16 @@ import PortfolioArtwork from "../components/PortfolioArtwork.astro";
 </Layout>
 
 <style>
+  .project-github-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    min-height: 44px;
+    margin: -10px;
+    flex-shrink: 0;
+  }
+
   .details-no-disclosure > summary {
     list-style: none;
   }
