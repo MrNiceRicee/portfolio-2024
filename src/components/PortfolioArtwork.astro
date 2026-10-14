@@ -1,8 +1,10 @@
 ---
-import artwork from "../assets/silly-guy/eyes_open_mouth_closed.webp";
+import artwork1x from "../assets/silly-guy/artwork-128.webp";
+import artwork2x from "../assets/silly-guy/artwork-256.webp";
+import artwork3x from "../assets/silly-guy/artwork-384.webp";
 ---
 <div class="portfolio-artwork" aria-hidden="true">
-  <img src={artwork.src} alt="" width="128" height="128" />
+  <img src={artwork1x.src} srcset={`${artwork1x.src} 1x, ${artwork2x.src} 2x, ${artwork3x.src} 3x`} alt="" width="128" height="128" decoding="async" />
 </div>
 
 <style>
