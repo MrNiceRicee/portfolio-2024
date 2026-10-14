@@ -52,7 +52,11 @@
     () => activeSpoilers.forEach((button) => setRevealed(button, false)),
     (event) => {
       // Native overlays and editing controls have their own Escape behavior.
-      if (document.querySelector("dialog:modal, [popover]:popover-open")) return true;
+      if (document.querySelector("dialog:modal")) return true;
+      if (
+        CSS.supports("selector(:popover-open)") &&
+        document.querySelector("[popover]:popover-open")
+      ) return true;
       return event.composedPath().some((node) =>
         node instanceof HTMLElement && (
           node.isContentEditable || node.matches("input, textarea, select")
