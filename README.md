@@ -24,7 +24,8 @@ Run these from the project directory:
 | `bun run dev` | Start Astro's development server. |
 | `bun run test` | Run the existing Bun behavior tests. |
 | `bun run check` | Check Astro and TypeScript source. |
-| `bun run build` | Run tests, source checks and the static build into `dist/`. |
+| `bun run build` | Run tests, source checks, the static build and output checks in `dist/`. |
+| `bun run check:build` | Verify the built 404 page, root-relative renderer assets and its script budget. |
 | `bun run preview` | Build, then serve the static output locally with Wrangler at `http://localhost:8787`. |
 | `bun run deploy:dry-run` | Build and validate Workers packaging without uploading or deploying. |
 | `bun run deploy` | Build and deploy to Cloudflare Workers; this changes the live Worker. |
@@ -33,7 +34,11 @@ Run these from the project directory:
 
 ## Cloudflare Workers Static Assets
 
-`wrangler.toml` serves `dist/` as static assets under the Worker name `portfolio-2024`. There is no Worker script, SSR adapter or runtime binding. Unknown paths return 404 rather than the home page.
+`wrangler.toml` serves `dist/` as static assets under the Worker name `portfolio-2024`. There is no Worker script, SSR adapter or runtime binding. Its `not_found_handling = "404-page"` setting serves the built error page with status 404 for unknown paths and assets.
+
+`src/pages/404.astro` generates the top-level `dist/404.html`. Cloudflare Pages uses that file for missing pages and assets, disabling its automatic single-page-app fallback. Keep it in the published output. The standalone error page uses a small WebGL 2 renderer for the CRT effect; the homepage does not load it. Reduced motion, forced colors, unsupported WebGL and context loss retain readable HTML with a native home link. Hidden tabs and a powered-off screen stop the render loop.
+
+To check a deployed preview, request an unknown root path, a nested path and a nonexistent `/_astro/*.js` asset with both GET and HEAD. Each must return HTTP 404; GET should contain the error page. Check that `/` and an actual built asset still return 200. The 404 page's home link and assets use root-relative URLs so nested missing paths work too. Use the preview's HTTPS URL for phone testing.
 
 Local preparation does not perform the live cutover. Publishing, custom-domain routing and configuring Cloudflare's Git integration still require a separate deployment decision and authorized Cloudflare account access. The current live hosting configuration has not been changed by this migration.
 
