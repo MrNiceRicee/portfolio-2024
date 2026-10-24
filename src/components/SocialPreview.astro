@@ -1,0 +1,53 @@
+---
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+if (!Astro.site) throw new Error("Social previews require Astro's production site URL.");
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+const assetBase = new URL(import.meta.env.SOCIAL_ASSET_BASE_URL || Astro.site);
+if (
+  assetBase.protocol !== "https:"
+  || assetBase.username || assetBase.password
+  || assetBase.pathname !== "/" || assetBase.search || assetBase.hash
+) {
+  throw new Error("SOCIAL_ASSET_BASE_URL must be an HTTPS origin without credentials, path, query or fragment.");
+}
+
+const videoUrl = new URL("/social/preview-v1.mp4", assetBase).href;
+const imageUrl = new URL("/social/preview-v1.jpg", assetBase).href;
+const playerUrl = new URL("/social/player.html", assetBase).href;
+const imageAlt = "Josh's corner — Joshua Constantine Santos, senior fullstack engineer.";
+---
+
+<link rel="canonical" href={canonicalUrl} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:type" content="website" />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:site_name" content="Josh's corner" />
+<meta property="og:video" content={videoUrl} />
+<meta property="og:video:secure_url" content={videoUrl} />
+<meta property="og:video:type" content="video/mp4" />
+<meta property="og:video:width" content="1200" />
+<meta property="og:video:height" content="630" />
+<meta property="og:image" content={imageUrl} />
+<meta property="og:image:secure_url" content={imageUrl} />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={imageAlt} />
+<meta name="twitter:card" content="player" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:creator" content="@mrnicericee" />
+<meta name="twitter:image" content={imageUrl} />
+<meta name="twitter:image:alt" content={imageAlt} />
+<meta name="twitter:player" content={playerUrl} />
+<meta name="twitter:player:width" content="1200" />
+<meta name="twitter:player:height" content="630" />
+<meta name="twitter:player:stream" content={videoUrl} />
+<meta name="twitter:player:stream:content_type" content="video/mp4" />
