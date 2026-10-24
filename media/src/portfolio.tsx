@@ -18,7 +18,6 @@ const ink = "#3c342e";
 const muted = "#786755";
 const mouthOpenFrames = [[25, 30], [34, 40], [44, 48], [52, 57], [63, 69], [74, 79], [100, 106], [111, 115], [120, 127]];
 const blinkFrames = [[65, 69], [145, 149]];
-const characterStates = ["resting", "talking", "blinking", "talking-blinking"] as const;
 const characterImages = {
   resting: "character.webp",
   talking: "character-talking.webp",
@@ -30,21 +29,19 @@ export const Portfolio = () => {
   const frame = useCurrentFrame() % portfolioLoopFrames;
   // eight identical ray groups make each 45-degree turn a seamless visual cycle.
   const sunRotation = 22.5 + 45 * frame / portfolioLoopFrames;
-  // return to the resting pose before the loop boundary; the name never disappears.
   const gesture = interpolate(frame,
     [0, 18, 38, 60, 92, 114, 140, 179],
     [0, 0, -1.3, 0.8, -0.5, 0, 0, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.bezier(0.645, 0.045, 0.355, 1) },
   );
   const lift = 1 - Math.cos(frame / portfolioLoopFrames * Math.PI * 2);
-  // short, irregular speech bursts feel like a gif avatar, with room to rest and blink.
   const talking = mouthOpenFrames.some(([start, end]) => frame >= start && frame < end);
   const blinking = blinkFrames.some(([start, end]) => frame >= start && frame < end);
   const characterState = blinking ? (talking ? "talking-blinking" : "blinking") : (talking ? "talking" : "resting");
   const character = (
     <div style={{ position: "absolute", left: 42, top: 0, width: 400, height: 400, transformOrigin: "52% 90%", transform: `translateY(${-lift * 1.5}px) rotate(${gesture}deg)` }}>
-      {characterStates.map((state) => (
-        <Img key={state} src={staticFile(characterImages[state])} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", opacity: state === characterState ? 1 : 0 }} />
+      {Object.entries(characterImages).map(([state, image]) => (
+        <Img key={state} src={staticFile(image)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", opacity: state === characterState ? 1 : 0 }} />
       ))}
     </div>
   );
