@@ -42,6 +42,8 @@ The homepage advertises a direct HTTPS MP4, a JPEG fallback and a standalone HTM
 SOCIAL_ASSET_BASE_URL=https://preview.example.com bun run build
 ```
 
+You can also set `SOCIAL_ASSET_BASE_URL` in `.env.production`. The social checks use the production environment to match Astro's build, without loading test-only environment files.
+
 The editable composition and rendering instructions live in [`media/`](media/README.md). The generated files are `public/social/preview-v1.mp4` and `public/social/preview-v1.jpg`; the player is `public/social/player.html`. Keep these query-free URLs and advance the filename version when replacing published media that platforms may have cached. `bun run build` validates the built metadata and resources after Astro generates `dist/`.
 
 The MP4 and poster support [Messages rich previews](https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages) and [Discord video embeds](https://docs.discord.com/developers/link-previews/overview). Open Graph image metadata provides a fallback for consumers that use images. X receives a player card with an HTML player, a direct stream and poster. Each service chooses its rendered preview and cache behavior; local validation does not establish native acceptance in Messages, Discord, Slack, LinkedIn or X. Verify those after an authorized HTTPS deployment.

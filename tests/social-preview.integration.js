@@ -1,9 +1,12 @@
 import { beforeAll, expect, test } from "bun:test";
 import { readFile, stat } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { loadEnv } from "vite";
 
 const output = new URL("../dist/", import.meta.url);
 const production = "https://www.joshsantos.me/";
-const assetBase = process.env.SOCIAL_ASSET_BASE_URL || production;
+const env = loadEnv("production", fileURLToPath(new URL("../", import.meta.url)), "");
+const assetBase = env.SOCIAL_ASSET_BASE_URL || production;
 const assetUrl = (name) => new URL(`/social/${name}`, assetBase).href;
 const metadata = new Map();
 const iconPaths = new Set();

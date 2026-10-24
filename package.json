@@ -11,7 +11,7 @@
     "astro": "astro",
     "deploy": "bun run build && wrangler deploy",
     "test": "bun test",
-    "test:social": "bun test ./tests/social-preview.integration.js",
+    "test:social": "NODE_ENV=${NODE_ENV:-production} bun --no-env-file test ./tests/social-preview.integration.js",
     "check": "astro check",
     "deploy:dry-run": "bun run build && wrangler deploy --dry-run"
   },
@@ -23,6 +23,7 @@
     "@astrojs/check": "0.9.10",
     "tailwindcss": "4.3.3",
     "typescript": "5.9.3",
+    "vite": "8.3.4",
     "wrangler": "4.150.0",
     "@tailwindcss/vite": "4.3.3"
   },
