@@ -3,8 +3,8 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { analyzeComments } from "../scripts/comment-policy";
-import { checkComments } from "../scripts/check-comments";
+import { analyzeComments } from "./policy";
+import { checkComments } from "./check";
 
 const three = "first\nsecond\nthird";
 const four = `${three}\nfourth`;
@@ -291,10 +291,12 @@ test("CLI includes untracked authored files and respects generated, third-party 
   try {
     execFileSync("git", ["init", "--quiet", directory]);
     mkdirSync(join(directory, "src"));
+    mkdirSync(join(directory, "tools", "lint", "comments"), { recursive: true });
     mkdirSync(join(directory, "public", "third-party"), { recursive: true });
     mkdirSync(join(directory, "media", "assets"), { recursive: true });
     writeFileSync(join(directory, ".gitignore"), "ignored.ts\n");
     writeFileSync(join(directory, "src", "untracked.ts"), lineComments(four));
+    writeFileSync(join(directory, "tools", "lint", "comments", "untracked.ts"), lineComments(four));
     writeFileSync(join(directory, "ignored.ts"), lineComments(four));
     writeFileSync(join(directory, "public", "third-party", "licensed.js"), lineComments(four));
     writeFileSync(join(directory, "media", "assets", "generated.js"), lineComments(four));
@@ -304,9 +306,14 @@ test("CLI includes untracked authored files and respects generated, third-party 
       `/** @generated */\n${lineComments(four)}`,
     );
     expect(checkComments(directory)).toBe(1);
-    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledTimes(2);
     expect(error.mock.calls[0][0]).toContain("src/untracked.ts:1:");
+    expect(error.mock.calls[1][0]).toContain("tools/lint/comments/untracked.ts:1:");
     writeFileSync(join(directory, "src", "untracked.ts"), lineComments(three));
+    writeFileSync(
+      join(directory, "tools", "lint", "comments", "untracked.ts"),
+      lineComments(three),
+    );
     expect(checkComments(directory)).toBe(0);
   } finally {
     error.mockRestore();

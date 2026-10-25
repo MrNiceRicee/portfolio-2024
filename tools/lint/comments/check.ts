@@ -2,9 +2,9 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { analyzeComments } from "./comment-policy";
+import { analyzeComments } from "./policy";
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
 function isAuthoredCode(filename: string): boolean {
   if (!/\.(?:[cm]?[jt]sx?|astro|css|html)$/iu.test(filename)) return false;
@@ -15,7 +15,7 @@ function isAuthoredCode(filename: string): boolean {
   )
     return false;
   if (/\.(?:min|generated)\./iu.test(filename)) return false;
-  return !filename.includes("/") || /^(?:scripts|tests|src|media|public)\//u.test(filename);
+  return !filename.includes("/") || /^(?:scripts|tools|tests|src|media|public)\//u.test(filename);
 }
 
 export function checkComments(repositoryRoot = root): number {

@@ -15,7 +15,7 @@
     "check": "astro check",
     "deploy:dry-run": "bun run build && wrangler deploy --dry-run",
     "lint:code": "oxlint --deny-warnings .",
-    "lint:comments": "bun scripts/check-comments.ts",
+    "lint:comments": "bun tools/lint/comments/check.ts",
     "lint": "bun run lint:code && bun run lint:comments",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",

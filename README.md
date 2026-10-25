@@ -38,6 +38,8 @@ Run these from the project directory:
 
 ## Linting, formatting and comments
 
+The comment-lint tool lives in `tools/lint/comments/`: `check.ts` is the CLI, `policy.ts` analyzes source comments, and `policy.test.js` keeps the tool's tests alongside it. Application behavior tests remain in `tests/`.
+
 Oxlint and Oxfmt are pinned in the lockfile. Oxlint checks JavaScript, TypeScript, TSX and the JavaScript portions of Astro files; `astro check` retains template/type coverage. Oxfmt also formats Astro, CSS, HTML, JSON, YAML and Markdown. Its Astro whitespace mode matches the application's `compressHTML: true` setting. Generated files, binary assets and third-party licenses are excluded from formatting.
 
 Cyclomatic complexity is limited to **15 per function**, using the classic metric. Informational comments are limited to **three nonblank prose lines** per block or adjacent group of `//` comments. Delimiters, JSDoc tags and their type/parameter/return descriptions, and required tool directives do not consume that limit. Comment extraction uses parsers for JavaScript/TypeScript/TSX, Astro, CSS and HTML, so quoted comment markers are not treated as comments.
