@@ -26,15 +26,23 @@ export function checkComments(repositoryRoot = root): number {
   );
   const filenames = [...new Set(paths.split("\0").filter(isAuthoredCode))].sort();
   let failures = 0;
+  let existingFiles = 0;
   for (const filename of filenames) {
-    const source = readFileSync(resolve(repositoryRoot, filename), "utf8");
+    let source: string;
+    try {
+      source = readFileSync(resolve(repositoryRoot, filename), "utf8");
+    } catch (error) {
+      if (error instanceof Error && "code" in error && error.code === "ENOENT") continue;
+      throw error;
+    }
+    existingFiles += 1;
     if (/^\s*(?:\/\/|\/\*+!?|<!--)\s*[@#]generated\b/u.test(source)) continue;
     for (const diagnostic of analyzeComments(filename, source)) {
       console.error(`${filename}:${diagnostic.line}: ${diagnostic.message}`);
       failures += 1;
     }
   }
-  if (failures === 0) console.log(`comment policy passed (${filenames.length} authored files)`);
+  if (failures === 0) console.log(`comment policy passed (${existingFiles} authored files)`);
   return failures === 0 ? 0 : 1;
 }
 

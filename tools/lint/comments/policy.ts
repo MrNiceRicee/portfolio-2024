@@ -1,11 +1,27 @@
 import { parse as parseAstro } from "@astrojs/compiler-rs";
+import { Buffer } from "node:buffer";
 import { parseSync } from "oxc-parser";
 import { parse as parseHtml, type DefaultTreeAdapterTypes } from "parse5";
-import postcss from "postcss";
+import postcss, { CssSyntaxError } from "postcss";
+import { htmlEmbeddedSource } from "./htmlSource";
 
 export interface CommentDiagnostic {
   line: number;
   message: string;
+}
+
+interface SourceDiagnostic {
+  offset: number;
+  message: string;
+}
+
+class SourceParseError extends Error {
+  constructor(
+    message: string,
+    readonly offset: number,
+  ) {
+    super(message);
+  }
 }
 
 interface CommentSpan {
@@ -16,7 +32,8 @@ interface CommentSpan {
 
 interface Extraction {
   comments: CommentSpan[];
-  diagnostics: CommentDiagnostic[];
+  diagnostics: SourceDiagnostic[];
+  embeddedDiagnostics?: SourceDiagnostic[];
 }
 
 type SourceRange = Pick<CommentSpan, "start" | "end">;
@@ -52,6 +69,16 @@ function lineAt(source: string, offset: number): number {
   return source.slice(0, offset).split(/\r\n|[\n\r\u2028\u2029]/u).length;
 }
 
+function cssErrorOffset(error: CssSyntaxError, source: string): number {
+  if (error.input?.offset !== undefined) return error.input.offset;
+  const lines = source.split("\n");
+  const preceding = lines.slice(0, Math.max(0, (error.line ?? 1) - 1));
+  return (
+    preceding.reduce((offset, line) => offset + line.length + 1, 0) +
+    Math.max(0, (error.column ?? 1) - 1)
+  );
+}
+
 function javascriptComments(filename: string, source: string): Extraction {
   const parsed = parseSync(filename, source);
   return {
@@ -61,7 +88,7 @@ function javascriptComments(filename: string, source: string): Extraction {
       kind: type === "Line" ? "line" : "block",
     })),
     diagnostics: parsed.errors.map((error) => ({
-      line: lineAt(source, error.labels[0]?.start ?? 0),
+      offset: error.labels[0]?.start ?? 0,
       message: `cannot parse source: ${error.message}`,
     })),
   };
@@ -69,7 +96,15 @@ function javascriptComments(filename: string, source: string): Extraction {
 
 function cssComments(filename: string, source: string, offset = 0): CommentSpan[] {
   const comments: CommentSpan[] = [];
-  postcss.parse(source, { from: filename }).walkComments((comment) => {
+  let parsed: postcss.Root;
+  try {
+    parsed = postcss.parse(source, { from: filename });
+  } catch (error) {
+    if (error instanceof CssSyntaxError)
+      throw new SourceParseError(error.message, offset + cssErrorOffset(error, source));
+    throw error;
+  }
+  parsed.walkComments((comment) => {
     const start = comment.source?.start?.offset;
     const end = comment.source?.end?.offset;
     if (start === undefined || end === undefined) {
@@ -169,7 +204,9 @@ function markupComments(filename: string, source: string): Extraction {
   const diagnostics = parsed.diagnostics
     .filter((error) => error.severity === "error")
     .map((error) => ({
-      line: error.labels[0]?.line ?? 1,
+      offset: Buffer.from(source)
+        .subarray(0, error.labels[0]?.start ?? 0)
+        .toString("utf8").length,
       message: `cannot parse source: ${error.text}`,
     }));
   const body: unknown[] = Array.isArray(ast.body) ? ast.body : [];
@@ -177,7 +214,7 @@ function markupComments(filename: string, source: string): Extraction {
   const coveredEnd = Math.max(0, ...ends.filter((end): end is number => typeof end === "number"));
   if (source.slice(coveredEnd).trim()) {
     diagnostics.push({
-      line: lineAt(source, coveredEnd),
+      offset: coveredEnd,
       message: "cannot parse source: Astro parser left trailing source uncovered",
     });
   }
@@ -205,52 +242,41 @@ function htmlAttribute(node: DefaultTreeAdapterTypes.Element, name: string): str
   return node.attrs.find((attribute) => attribute.name === name)?.value;
 }
 
-function htmlStyleComments(
-  node: DefaultTreeAdapterTypes.Element,
-  content: string,
-  filename: string,
-  start: number,
-): Extraction {
-  const language = htmlAttribute(node, "lang");
-  const type = htmlAttribute(node, "type");
-  if ((language && language !== "css") || (type && type !== "text/css"))
-    throw new Error("unsupported HTML style language");
-  return { comments: cssComments(filename, content, start), diagnostics: [] };
-}
-
 function htmlEmbeddedComments(
   node: DefaultTreeAdapterTypes.Element,
   source: string,
   filename: string,
-): Extraction {
+): SourceDiagnostic[] {
   const start = node.sourceCodeLocation?.startTag?.endOffset;
   const end = node.sourceCodeLocation?.endTag?.startOffset ?? node.sourceCodeLocation?.endOffset;
-  if (start === undefined || end === undefined) return { comments: [], diagnostics: [] };
-  const content = source.slice(start, end);
-  if (node.tagName === "style") return htmlStyleComments(node, content, filename, start);
-  if (!isJavaScriptType(htmlAttribute(node, "type"))) return { comments: [], diagnostics: [] };
-  const extracted = javascriptComments(`${filename}.js`, content);
-  return {
-    comments: extracted.comments.map((comment) => ({
-      ...comment,
-      start: comment.start + start,
-      end: comment.end + start,
-    })),
-    diagnostics: extracted.diagnostics.map((diagnostic) => ({
+  if (start === undefined || end === undefined) return [];
+  const type = htmlAttribute(node, "type");
+  if (node.tagName === "style") {
+    if (type && type.toLowerCase() !== "text/css")
+      throw new Error("unsupported HTML style language");
+  } else if (!isJavaScriptType(type)) return [];
+  const { content, sourceOffsetAt } = htmlEmbeddedSource(node, source, start, end);
+  return analyzeSource(`${filename}.${node.tagName === "style" ? "css" : "js"}`, content).map(
+    (diagnostic) => ({
       ...diagnostic,
-      line: diagnostic.line + lineAt(source, start) - 1,
-    })),
-  };
+      offset: sourceOffsetAt(diagnostic.offset),
+    }),
+  );
 }
 
 function htmlComments(filename: string, source: string): Extraction {
-  const result: Extraction = { comments: [], diagnostics: [] };
+  const embeddedDiagnostics: SourceDiagnostic[] = [];
+  const result: Extraction = { comments: [], diagnostics: [], embeddedDiagnostics };
   const document = parseHtml(source, {
     sourceCodeLocationInfo: true,
     onParseError(error) {
-      if (error.code.includes("comment") || error.code === "eof-in-tag")
+      if (
+        error.code.includes("comment") ||
+        error.code === "eof-in-tag" ||
+        error.code === "eof-in-cdata"
+      )
         result.diagnostics.push({
-          line: error.startLine,
+          offset: error.startOffset,
           message: `cannot parse source: ${error.code}`,
         });
     },
@@ -260,9 +286,7 @@ function htmlComments(filename: string, source: string): Extraction {
     if (node.nodeName === "#comment" && location)
       result.comments.push({ start: location.startOffset, end: location.endOffset, kind: "html" });
     if ("tagName" in node && (node.tagName === "style" || node.tagName === "script")) {
-      const embedded = htmlEmbeddedComments(node, source, filename);
-      result.comments.push(...embedded.comments);
-      result.diagnostics.push(...embedded.diagnostics);
+      embeddedDiagnostics.push(...htmlEmbeddedComments(node, source, filename));
     }
   });
   return result;
@@ -329,20 +353,20 @@ function consecutiveLines(previous: CommentSpan, next: CommentSpan, source: stri
   );
 }
 
-export function analyzeComments(filename: string, source: string): CommentDiagnostic[] {
+function analyzeSource(filename: string, source: string): SourceDiagnostic[] {
   let extraction: Extraction;
   try {
     extraction = extractComments(filename, source);
   } catch (error) {
     return [
       {
-        line: 1,
+        offset: error instanceof SourceParseError ? error.offset : 0,
         message: `cannot parse source: ${error instanceof Error ? error.message : String(error)}`,
       },
     ];
   }
   if (extraction.diagnostics.length > 0) return extraction.diagnostics;
-  const diagnostics: CommentDiagnostic[] = [];
+  const diagnostics: SourceDiagnostic[] = [...(extraction.embeddedDiagnostics ?? [])];
   const groups: CommentSpan[][] = [];
   for (const comment of extraction.comments.sort((left, right) => left.start - right.start)) {
     const group = groups.at(-1);
@@ -355,10 +379,17 @@ export function analyzeComments(filename: string, source: string): CommentDiagno
     const first = group[0];
     if (count > 3 && first) {
       diagnostics.push({
-        line: lineAt(source, first.start),
+        offset: first.start,
         message: `comment has ${count} informational lines; maximum is 3 (section/file banners and JSDoc metadata are exempt)`,
       });
     }
   }
-  return diagnostics;
+  return diagnostics.sort((left, right) => left.offset - right.offset);
+}
+
+export function analyzeComments(filename: string, source: string): CommentDiagnostic[] {
+  return analyzeSource(filename, source).map(({ offset, message }) => ({
+    line: lineAt(source, offset),
+    message,
+  }));
 }

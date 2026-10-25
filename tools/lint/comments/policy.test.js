@@ -156,6 +156,152 @@ describe("language parsers", () => {
     expect(diagnostics[1].line).toBe(8);
   });
 
+  test.each(['type="TEXT/CSS"', 'type="TeXt/CsS"', 'lang="en"', 'lang="scss"'])(
+    "checks HTML CSS independently of the %s attribute",
+    (attribute) => {
+      expect(
+        violations(`<style ${attribute}>/*\n${three}\n*/p { color:red }</style>`, "page.html"),
+      ).toEqual([]);
+      const diagnostics = violations(
+        `<style ${attribute}>/*\n${four}\n*/p { color:red }</style>`,
+        "page.html",
+      );
+      expect(diagnostics).toHaveLength(1);
+      expect(diagnostics[0].message).toContain("4 informational lines");
+    },
+  );
+
+  test("parses SVG CDATA without adding whitespace between JavaScript tokens", () => {
+    expect(
+      violations("<svg><script><![CDATA[const value = 1;]]></script></svg>", "page.html"),
+    ).toEqual([]);
+    expect(
+      violations("<svg><script>const val<![CDATA[ue]]> = 1;</script></svg>", "page.html"),
+    ).toEqual([]);
+    expect(
+      violations(
+        '<svg><script><![CDATA[const marker = "<![CDATA[";]]></script></svg>',
+        "page.html",
+      ),
+    ).toEqual([]);
+  });
+
+  test("enforces SVG CDATA comments at original Unicode and CRLF source lines", () => {
+    const source = `<p>😀</p>\r\n<svg><script><![CDATA[\r\n${lineComments(four).replaceAll("\n", "\r\n")}\r\n]]></script>\r\n<style><![CDATA[/*\r\n${four.replaceAll("\n", "\r\n")}\r\n*/]]></style></svg>\r\n<!--\r\n${four.replaceAll("\n", "\r\n")}\r\n-->`;
+    const diagnostics = violations(source, "page.html");
+    expect(diagnostics).toHaveLength(3);
+    expect(diagnostics.map((diagnostic) => diagnostic.line).sort((a, b) => a - b)).toEqual([
+      3, 8, 14,
+    ]);
+    expect(
+      diagnostics.every((diagnostic) => diagnostic.message.includes("4 informational lines")),
+    ).toBe(true);
+  });
+
+  test("groups comments across SVG CDATA sections and counts their actual text", () => {
+    const source =
+      "<svg><script><![CDATA[// first\n]]><![CDATA[// second\n// third\n// fourth]]></script></svg>";
+    expect(violations(source, "page.html")[0].message).toContain("4 informational lines");
+    expect(
+      violations(`<svg><script>/*<![CDATA[\n${three}\n]]>*/</script></svg>`, "page.html"),
+    ).toEqual([]);
+  });
+
+  test("normalizes foreign input line endings before joining CDATA sections", () => {
+    expect(
+      violations(
+        "<svg><script><![CDATA[// one\r]]><![CDATA[\n// two\n// three\n// four]]></script></svg>",
+        "page.html",
+      ),
+    ).toEqual([]);
+    const diagnostics = violations(
+      "<svg><script><![CDATA[\r]]><![CDATA[\n// one\n// two\n// three\n// four]]></script></svg>",
+      "page.html",
+    );
+    expect(diagnostics[0].message).toContain("4 informational lines");
+    expect(diagnostics[0].line).toBe(3);
+  });
+
+  test.each(["script", "style"])(
+    "decodes SVG %s references and maps synthetic lines to source",
+    (tag) => {
+      const comment = "/* first&#10;second&#10;third&#10;fourth */";
+      const diagnostics = violations(
+        `<p>😀</p>\r\n<svg><${tag}>&#10;${comment}</${tag}></svg>`,
+        "page.html",
+      );
+      expect(diagnostics).toHaveLength(1);
+      expect(diagnostics[0].message).toContain("4 informational lines");
+      expect(diagnostics[0].line).toBe(2);
+      expect(violations(`<svg><${tag}><![CDATA[${comment}]]></${tag}></svg>`, "page.html")).toEqual(
+        [],
+      );
+      expect(violations(`<${tag}>${comment}</${tag}>`, "page.html")).toEqual([]);
+    },
+  );
+
+  test("parses the decoded JavaScript quotes in foreign text", () => {
+    expect(
+      violations("<svg><script>const marker = &quot;valid&quot;;</script></svg>", "page.html"),
+    ).toEqual([]);
+    expect(
+      violations('<svg><script>const marker = "&quot;";</script></svg>', "page.html")[0].message,
+    ).toContain("cannot parse source");
+  });
+
+  test("checks foreign DOM comments separately from the embedded JavaScript text", () => {
+    expect(
+      violations(
+        "<svg><script><!-- short --><![CDATA[const value = ;]]></script></svg>",
+        "page.html",
+      )[0].message,
+    ).toContain("cannot parse source");
+    expect(
+      violations(
+        `<svg><script><!-- short -->\n<![CDATA[${lineComments(three)}]]></script></svg>`,
+        "page.html",
+      ),
+    ).toEqual([]);
+    const diagnostics = violations(
+      `<svg><script><!--\n${four}\n--><![CDATA[${lineComments(three)}]]></script></svg>`,
+      "page.html",
+    );
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0].message).toContain("4 informational lines");
+    expect(diagnostics[0].line).toBe(1);
+  });
+
+  test("maps diagnostics after removed multiline markup using their actual offsets", () => {
+    const source =
+      "<svg><script>const x = 1;<!--\nignored\n--><![CDATA[/*first\nsecond\nthird\nfourth*/]]></script></svg>";
+    const diagnostics = violations(source, "page.html");
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0].message).toContain("4 informational lines");
+    expect(diagnostics[0].line).toBe(3);
+    const broken = violations(
+      "<svg><script>const x = <!--\nignored\n--><![CDATA[;]]></script></svg>",
+      "page.html",
+    );
+    expect(broken[0].message).toContain("cannot parse source");
+    expect(broken[0].line).toBe(3);
+    const css = violations(
+      "<svg><style>p { <!--\nignored\n--><![CDATA[unknown]]></style></svg>",
+      "page.html",
+    );
+    expect(css[0].message).toContain("cannot parse source");
+    expect(css[0].line).toBe(3);
+  });
+
+  test("keeps CDATA-like strings in HTML scripts literal and reports real SVG parse errors", () => {
+    expect(violations('<script>const marker = "<![CDATA[";</script>', "page.html")).toEqual([]);
+    const diagnostics = violations(
+      "<p>😀</p>\r\n<svg><script><![CDATA[\r\nconst value = ;\r\n]]></script></svg>",
+      "page.html",
+    );
+    expect(diagnostics[0].message).toContain("cannot parse source");
+    expect(diagnostics[0].line).toBe(3);
+  });
+
   test("does not interpret non-JavaScript HTML script bodies as comments", () => {
     expect(
       violations(
@@ -270,13 +416,26 @@ describe("language parsers", () => {
     expect(violations(source, "style.css")[0].line).toBe(2);
   });
 
+  test("locates Astro and CSS parse errors after Unicode and CRLF", () => {
+    for (const [filename, source] of [
+      ["component.astro", "<p>😀</p>\r\n<script>\r\nconst value = ;\r\n</script>"],
+      ["component.astro", "<p>😀</p>\r\n<style>\r\np { broken; }\r\n</style>"],
+      ["style.css", "/*😀*/\r\np {\r\n broken;\r\n}"],
+    ]) {
+      const diagnostics = violations(source, filename);
+      expect(diagnostics[0].message).toContain("cannot parse source");
+      expect(diagnostics[0].line).toBe(3);
+    }
+  });
+
   test.each([
     ["broken.ts", "const value = ;"],
     ["broken.astro", "<script>const value = ;</script>"],
     ["broken.css", "p { color:"],
     ["broken.html", "<!-- unfinished"],
     ["broken.html", "<script>const value = ;</script>"],
-    ["unsupported.html", '<style lang="scss">p {color:red}</style>'],
+    ["broken.html", "<svg><script><![CDATA[unfinished"],
+    ["unsupported.html", '<style type="text/scss">p {color:red}</style>'],
     ["unsupported.astro", '<style lang="scss">p { color: red; }</style>'],
     ["unsupported.astro", '<style lang={"scss"}>p {color:red}</style>'],
   ])("fails clearly when %s cannot be parsed", (filename, source) => {
