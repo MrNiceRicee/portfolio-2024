@@ -6,6 +6,7 @@ import noisySvg from "../assets/noise.svg";
 import GetClientTime from "../components/GetClientTime.astro";
 import PortfolioTypography from "../components/PortfolioTypography.astro";
 import PortfolioSurface from "../components/PortfolioSurface.astro";
+import SocialPreview from "../components/SocialPreview.astro";
 
 interface Props {
   title: string;
@@ -24,6 +25,9 @@ const lightColor = "#ebebec";
 <html lang="en" data-portfolio>
   <head>
     <meta charset="UTF-8" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <SocialPreview title={title} description={description} />
     <PortfolioTypography />
     <script is:inline>
       const root = document.documentElement;
@@ -34,7 +38,6 @@ const lightColor = "#ebebec";
       root.classList.toggle("dark", preference === "dark"
         || (preference === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches));
     </script>
-    <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
@@ -47,7 +50,6 @@ const lightColor = "#ebebec";
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
   </head>
   <body
     class="min-h-[100dvh] bg-stone-50 dark:bg-stone-950 dark:text-zinc-50"

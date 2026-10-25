@@ -23,6 +23,7 @@ Run these from the project directory:
 | --- | --- |
 | `bun run dev` | Start Astro's development server. |
 | `bun run test` | Run the existing Bun behavior tests. |
+| `bun run test:social` | Verify the built homepage metadata, player and preview resources in `dist/`. Run after building. |
 | `bun run check` | Check Astro and TypeScript source. |
 | `bun run build` | Run tests, source checks and the static build into `dist/`. |
 | `bun run preview` | Build, then serve the static output locally with Wrangler at `http://localhost:8787`. |
@@ -30,6 +31,22 @@ Run these from the project directory:
 | `bun run deploy` | Build and deploy to Cloudflare Workers; this changes the live Worker. |
 | `bun run update-stamp` | Write the current UTC timestamp to `src/constants/lastUpdated.ts`. Run intentionally when updating site content. |
 | `bun run astro -- --help` | Show Astro CLI options. |
+
+## Social previews
+
+The homepage advertises a direct HTTPS MP4, a JPEG fallback and a standalone HTML player. Both preview images and video use a 1200 × 630 frame. The video is a six-second silent animation; the player has native controls, starts only after interaction and loops seamlessly. The metadata is emitted in the initial HTML, before the page's scripts.
+
+`astro.config.mjs` sets the production origin to `https://www.joshsantos.me`. Canonical and `og:url` values always use that origin. By default, image, MP4 and player URLs do too. When preparing a hosted preview, set `SOCIAL_ASSET_BASE_URL` to its public HTTPS origin at build time so crawlers can fetch that preview's assets. This accepts an origin such as `https://preview.example.com`, without credentials, a path, query or fragment. For example:
+
+```sh
+SOCIAL_ASSET_BASE_URL=https://preview.example.com bun run build
+```
+
+You can also set `SOCIAL_ASSET_BASE_URL` in `.env.production`. The social checks use the production environment to match Astro's build, without loading test-only environment files.
+
+The editable composition and rendering instructions live in [`media/`](media/README.md). The generated files are `public/social/preview-v1.mp4` and `public/social/preview-v1.jpg`; the player is `public/social/player.html`. Keep these query-free URLs and advance the filename version when replacing published media that platforms may have cached. `bun run build` validates the built metadata and resources after Astro generates `dist/`.
+
+The MP4 and poster support [Messages rich previews](https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages) and [Discord video embeds](https://docs.discord.com/developers/link-previews/overview). Open Graph image metadata provides a fallback for consumers that use images. X receives a player card with an HTML player, a direct stream and poster. Each service chooses its rendered preview and cache behavior; local validation does not establish native acceptance in Messages, Discord, Slack, LinkedIn or X. Verify those after an authorized HTTPS deployment.
 
 ## Cloudflare Workers Static Assets
 

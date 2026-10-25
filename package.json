@@ -6,11 +6,12 @@
     "dev": "astro dev",
     "start": "astro dev",
     "update-stamp": "UTC_DATE=\"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\"; LOCAL_DATE=\"$(date +'%Y-%m-%d %H:%M:%S %Z')\"; echo \"Current UTC Time: $UTC_DATE\"; echo \"Local Machine Time: $LOCAL_DATE\"; echo \"export const lastUpdated = '$UTC_DATE';\" > src/constants/lastUpdated.ts",
-    "build": "bun run test && bun run check && astro build",
+    "build": "bun run test && bun run check && astro build && bun run test:social",
     "preview": "bun run build && wrangler dev",
     "astro": "astro",
     "deploy": "bun run build && wrangler deploy",
     "test": "bun test",
+    "test:social": "NODE_ENV=${NODE_ENV:-production} bun --no-env-file test ./tests/social-preview.integration.js",
     "check": "astro check",
     "deploy:dry-run": "bun run build && wrangler deploy --dry-run"
   },
@@ -22,6 +23,7 @@
     "@astrojs/check": "0.9.10",
     "tailwindcss": "4.3.3",
     "typescript": "5.9.3",
+    "vite": "8.3.4",
     "wrangler": "4.150.0",
     "@tailwindcss/vite": "4.3.3"
   },
