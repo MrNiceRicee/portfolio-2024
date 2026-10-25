@@ -15,6 +15,8 @@ import ChevronRight from "./icons/ChevronRight.astro";
   <div class="grainy-light dark:grainy-dark portfolio-grain"></div>
 </div>
 <canvas class="portfolio-particles fixed inset-0 pointer-events-none z-[100] opacity-35 dark:opacity-25" data-portfolio-particles aria-hidden="true"></canvas>
+<div class="portfolio-safe-area portfolio-safe-area-top" aria-hidden="true"></div>
+<div class="portfolio-safe-area portfolio-safe-area-bottom" aria-hidden="true"></div>
 <div class="portfolio-controls" data-type="metadata">
   <div class="portfolio-appearance" data-theme-controls data-preference="system" data-open="false" hidden>
     <button class="portfolio-appearance-trigger" id="appearance-trigger" type="button" data-theme-trigger aria-label="Appearance: System" aria-haspopup="menu" aria-controls="appearance-menu" aria-expanded="false">
@@ -47,17 +49,38 @@ import ChevronRight from "./icons/ChevronRight.astro";
     --paper-surface: #fafaf9;
     --focus-wash: #e8dfcc;
     --focus-surface: var(--paper-surface);
+    --browser-edge-min: 0px;
+    --browser-edge-top: max(env(safe-area-inset-top, 0px), var(--browser-edge-min));
+    --browser-edge-bottom: max(env(safe-area-inset-bottom, 0px), var(--browser-edge-min));
+    /* give browser chrome and overscroll the same solid base as the paper. */
+    background-color: var(--paper-surface);
+    color-scheme: light;
+    /* focused controls should scroll clear of the screen edges. */
+    scroll-padding: calc(var(--browser-edge-top) + 1rem)
+      calc(env(safe-area-inset-right, 0px) + 1rem)
+      calc(var(--browser-edge-bottom) + 1rem)
+      calc(env(safe-area-inset-left, 0px) + 1rem);
+  }
+  @media (any-pointer: coarse) {
+    html[data-portfolio] {
+      /* a nonempty paint target remains when mobile browser insets collapse. */
+      --browser-edge-min: 12px;
+    }
   }
   html.dark[data-portfolio] {
     --paper-surface: #0c0a09;
     --focus-wash: #302a21;
     --focus-surface: var(--paper-surface);
+    color-scheme: dark;
   }
   html[data-portfolio] body {
     position: relative;
     display: flow-root;
     isolation: isolate;
     background-color: var(--paper-surface);
+    /* inset content while the paper still fills the body's entire box. */
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+      env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
   }
   .portfolio-decoration {
     --crinkle-intensity: 0.3;
@@ -103,6 +126,22 @@ import ChevronRight from "./icons/ChevronRight.astro";
   html[data-portfolio] .portfolio-grain { animation-play-state: paused; }
   html[data-portfolio][data-film-motion="running"] .portfolio-grain { animation-play-state: running; }
   .portfolio-particles { width: 100%; height: 100%; }
+  /* unfiltered edges let browsers resample a solid color after appearance changes. */
+  .portfolio-safe-area {
+    position: fixed;
+    inset-inline: 0;
+    z-index: 103;
+    pointer-events: none;
+    background: var(--paper-surface);
+  }
+  .portfolio-safe-area-top {
+    top: 0;
+    height: var(--browser-edge-top);
+  }
+  .portfolio-safe-area-bottom {
+    bottom: 0;
+    height: var(--browser-edge-bottom);
+  }
   .portfolio-controls {
     display: flex;
     flex-wrap: wrap;
@@ -214,7 +253,7 @@ import ChevronRight from "./icons/ChevronRight.astro";
       box-shadow: none;
       outline-color: Highlight;
     }
-    .portfolio-decoration, .portfolio-fibers, .portfolio-film, .portfolio-particles, .portfolio-pause { display: none; }
+    .portfolio-decoration, .portfolio-fibers, .portfolio-film, .portfolio-particles, .portfolio-safe-area, .portfolio-pause { display: none; }
   }
 </style>
 

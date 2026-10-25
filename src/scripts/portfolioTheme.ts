@@ -32,8 +32,8 @@ export function initializePortfolioTheme() {
     root.dataset.themePreference = preference;
     root.classList.toggle("dark", dark);
     themeColor?.setAttribute("content", dark
-      ? document.body.dataset.darkcolor ?? "#181615"
-      : document.body.dataset.lightcolor ?? "#ebebec");
+      ? document.body.dataset.darkcolor ?? "#0c0a09"
+      : document.body.dataset.lightcolor ?? "#fafaf9");
     appleStatus?.setAttribute("content", dark ? "black-translucent" : "default");
     buttons.forEach((button) => { button.setAttribute("aria-checked", String(button.dataset.themeChoice === preference)); });
     const currentLabel = preference.charAt(0).toUpperCase() + preference.slice(1);
