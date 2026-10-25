@@ -38,11 +38,13 @@ Run these from the project directory:
 
 ## Linting, formatting and comments
 
-The comment-lint tool lives in `tools/lint/comments/`: `check.ts` is the CLI, `policy.ts` analyzes source comments, and `policy.test.js` keeps the tool's tests alongside it. Application behavior tests remain in `tests/`.
+The comment-lint tool and its tests live in `tools/lint/comments/`: `check.ts` is the CLI, `policy.ts` analyzes source comments, `astroContext.ts` tracks markup contexts, and `htmlSource.ts` preserves original source positions during HTML normalization. Application behavior tests remain in `tests/`.
 
 Oxlint and Oxfmt are pinned in the lockfile. Oxlint checks JavaScript, TypeScript, TSX and the JavaScript portions of Astro files; `astro check` retains template/type coverage. Oxfmt also formats Astro, CSS, HTML, JSON, YAML and Markdown. Its Astro whitespace mode matches the application's `compressHTML: true` setting. Generated files, binary assets and third-party licenses are excluded from formatting.
 
 Cyclomatic complexity is limited to **15 per function**, using the classic metric. Informational comments are limited to **three nonblank prose lines** per block or adjacent group of `//` comments. Delimiters, JSDoc tags and their type/parameter/return descriptions, and required tool directives do not consume that limit. Comment extraction uses parsers for JavaScript/TypeScript/TSX, Astro, CSS and HTML, so quoted comment markers are not treated as comments.
+
+Astro markup follows native HTML text contexts, SVG/MathML integration points and case-insensitive script `type` attributes. Lowercase `<script>` and `<style>` use Astro's raw-source parsing. Browser-native script/style extraction applies to HTML and SVG; direct MathML script/style tags are ordinary text. Mixed-case native tags such as `<sCript>` and `<sTyle>` require literal executable bodies and a known native namespace. Templated executable bodies and unknown namespaces, including those under components or affected by dynamic MathML integration attributes, are rejected with a positioned diagnostic. Foreign-content markup that triggers browser stack correction, or contains an opaque component outside an HTML integration point, is also rejected rather than assigned a guessed namespace. Font attribute spreads in foreign content are rejected because they can trigger the same correction. The checker analyzes authored source without evaluating runtime rendering or injected HTML. Non-JavaScript script data remains exempt from JavaScript parsing; genuine Astro expression comments are still checked.
 
 Section/file banners are exempt, including diagrams. Use paired decorative fences or an explicit `@file`, `@fileoverview` or `@section` marker:
 

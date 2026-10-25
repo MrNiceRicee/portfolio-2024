@@ -1,9 +1,11 @@
 import { parse as parseAstro } from "@astrojs/compiler-rs";
 import { Buffer } from "node:buffer";
 import { parseSync } from "oxc-parser";
-import { parse as parseHtml, type DefaultTreeAdapterTypes } from "parse5";
+import { html, parse as parseHtml, type DefaultTreeAdapterTypes } from "parse5";
 import postcss, { CssSyntaxError } from "postcss";
+import { asNode, attributeValue, findAttribute, visitAst, type AstNode } from "./astroContext";
 import { htmlEmbeddedSource } from "./htmlSource";
+import { SourceParseError } from "./sourceError";
 
 export interface CommentDiagnostic {
   line: number;
@@ -13,15 +15,6 @@ export interface CommentDiagnostic {
 interface SourceDiagnostic {
   offset: number;
   message: string;
-}
-
-class SourceParseError extends Error {
-  constructor(
-    message: string,
-    readonly offset: number,
-  ) {
-    super(message);
-  }
 }
 
 interface CommentSpan {
@@ -37,8 +30,6 @@ interface Extraction {
 }
 
 type SourceRange = Pick<CommentSpan, "start" | "end">;
-
-type AstNode = Record<string, unknown>;
 
 const javascriptMimeEssences = new Set([
   "application/ecmascript",
@@ -58,12 +49,6 @@ const javascriptMimeEssences = new Set([
   "text/x-ecmascript",
   "text/x-javascript",
 ]);
-
-function asNode(value: unknown): AstNode | undefined {
-  return typeof value === "object" && value !== null && !Array.isArray(value)
-    ? (value as AstNode)
-    : undefined;
-}
 
 function lineAt(source: string, offset: number): number {
   return source.slice(0, offset).split(/\r\n|[\n\r\u2028\u2029]/u).length;
@@ -115,39 +100,20 @@ function cssComments(filename: string, source: string, offset = 0): CommentSpan[
   return comments;
 }
 
-function attributeValue(element: AstNode, name: string): unknown {
-  if (!Array.isArray(element.attributes)) return undefined;
-  const attribute = element.attributes.find((value: unknown) => {
-    const node = asNode(value);
-    return asNode(node?.name)?.name === name;
-  });
-  const value = asNode(asNode(attribute)?.value);
-  return value?.type === "Literal" ? value.value : value;
-}
-
 function extractStyle(node: AstNode, source: string, filename: string): CommentSpan[] {
   const opening = asNode(node.openingElement);
   const closing = asNode(node.closingElement);
   if (!opening || asNode(opening.name)?.name !== "style") return [];
-  const language = attributeValue(opening, "lang");
+  const languageAttribute = findAttribute(opening, "lang");
+  const language = attributeValue(languageAttribute);
   if (language !== undefined && language !== "css") {
-    throw new Error(`unsupported style language: ${String(language)}`);
+    throw new SourceParseError(
+      `unsupported style language: ${String(language)}`,
+      typeof languageAttribute?.start === "number" ? languageAttribute.start : 0,
+    );
   }
   if (typeof opening.end !== "number" || typeof closing?.start !== "number") return [];
   return cssComments(filename, source.slice(opening.end, closing.start), opening.end);
-}
-
-function visitAst(value: unknown, visit: (node: AstNode) => void): void {
-  if (Array.isArray(value)) {
-    for (const child of value) visitAst(child, visit);
-    return;
-  }
-  const node = asNode(value);
-  if (!node) return;
-  visit(node);
-  for (const [key, child] of Object.entries(node)) {
-    if (key !== "comments") visitAst(child, visit);
-  }
 }
 
 function isJavaScriptType(value: string | undefined): boolean {
@@ -162,12 +128,93 @@ function isJavaScriptType(value: string | undefined): boolean {
 function rawScriptRange(node: AstNode): SourceRange | undefined {
   const opening = asNode(node.openingElement);
   if (!opening || asNode(opening.name)?.name !== "script") return undefined;
-  const value = attributeValue(opening, "type");
-  const literal = typeof value === "string" ? value : asNode(asNode(value)?.expression)?.value;
-  if (isJavaScriptType(typeof literal === "string" ? literal : undefined)) return undefined;
+  const value = attributeValue(findAttribute(opening, "type", true));
+  if (isJavaScriptType(typeof value === "string" ? value : undefined)) return undefined;
   const closing = asNode(node.closingElement);
   if (typeof opening.end !== "number" || typeof closing?.start !== "number") return undefined;
   return { start: opening.end, end: closing.start };
+}
+
+function mixedEmbeddedLanguage(opening: AstNode, name: string): "script" | "style" | undefined {
+  if (name !== "script" && name !== "style") return undefined;
+  const typeAttribute = findAttribute(opening, "type", true);
+  const type = attributeValue(typeAttribute);
+  if (name === "script")
+    return isJavaScriptType(typeof type === "string" ? type : undefined) ? name : undefined;
+  if (
+    type !== undefined &&
+    type !== "" &&
+    (typeof type !== "string" || type.toLowerCase() !== "text/css")
+  )
+    throw new SourceParseError(
+      "unsupported HTML style language",
+      typeof typeAttribute?.start === "number" ? typeAttribute.start : 0,
+    );
+  return name;
+}
+
+function requireLiteralBody(node: AstNode, name: string): void {
+  if (!Array.isArray(node.children)) return;
+  const template = node.children
+    .map(asNode)
+    .find((child) => child?.type !== "JSXText" && child?.type !== "AstroComment");
+  if (template)
+    throw new SourceParseError(
+      `unsupported Astro template in mixed-case ${name} body; use a literal body`,
+      typeof template.start === "number" ? template.start : 0,
+    );
+}
+
+function nativeEmbeddedDiagnostics(
+  name: string,
+  source: string,
+  filename: string,
+  range: SourceRange,
+  namespace: html.NS,
+): SourceDiagnostic[] {
+  const container = namespace === html.NS.SVG ? "svg" : "";
+  const prefix = `${container ? `<${container}>` : ""}<${name}>`;
+  const suffix = `</${name}>${container ? `</${container}>` : ""}`;
+  const content = source.slice(range.start, range.end);
+  return analyzeSource(`${filename}.html`, `${prefix}${content}${suffix}`).map((diagnostic) => ({
+    ...diagnostic,
+    offset: range.start + Math.max(0, Math.min(content.length, diagnostic.offset - prefix.length)),
+  }));
+}
+
+function mixedEmbeddedComments(
+  node: AstNode,
+  source: string,
+  filename: string,
+  namespace: html.NS | undefined,
+  literalParent: boolean,
+): { range: SourceRange; diagnostics: SourceDiagnostic[] } | undefined {
+  const opening = asNode(node.openingElement);
+  const authoredName = asNode(opening?.name)?.name;
+  if (
+    literalParent ||
+    !opening ||
+    typeof authoredName !== "string" ||
+    !/^[a-z]/u.test(authoredName)
+  )
+    return undefined;
+  const name = authoredName.toLowerCase();
+  if (name === authoredName || namespace === html.NS.MATHML) return undefined;
+  const language = mixedEmbeddedLanguage(opening, name);
+  if (!language) return undefined;
+  requireLiteralBody(node, name);
+  const closing = asNode(node.closingElement);
+  if (typeof opening.end !== "number" || typeof closing?.start !== "number") return undefined;
+  if (!namespace)
+    throw new SourceParseError(
+      "cannot determine namespace of mixed-case embedded source",
+      opening.end,
+    );
+  const range = { start: opening.end, end: closing.start };
+  return {
+    range,
+    diagnostics: nativeEmbeddedDiagnostics(language, source, filename, range, namespace),
+  };
 }
 
 function markupComments(filename: string, source: string): Extraction {
@@ -175,6 +222,7 @@ function markupComments(filename: string, source: string): Extraction {
   const ast: AstNode = parsed.ast;
   const comments: CommentSpan[] = [];
   const rawScripts: SourceRange[] = [];
+  const embeddedDiagnostics: SourceDiagnostic[] = [];
   if (Array.isArray(ast.comments)) {
     for (const value of ast.comments) {
       const comment = asNode(value);
@@ -187,8 +235,9 @@ function markupComments(filename: string, source: string): Extraction {
       }
     }
   }
-  visitAst(ast, (node) => {
+  visitAst(ast, (node, literalText, namespace, literalParent) => {
     if (
+      !literalText &&
       node.type === "AstroComment" &&
       typeof node.start === "number" &&
       typeof node.end === "number"
@@ -199,6 +248,11 @@ function markupComments(filename: string, source: string): Extraction {
       const rawScript = rawScriptRange(node);
       if (rawScript) rawScripts.push(rawScript);
       comments.push(...extractStyle(node, source, filename));
+      const mixed = mixedEmbeddedComments(node, source, filename, namespace, literalParent);
+      if (mixed) {
+        rawScripts.push(mixed.range);
+        embeddedDiagnostics.push(...mixed.diagnostics);
+      }
     }
   });
   const diagnostics = parsed.diagnostics
@@ -224,6 +278,7 @@ function markupComments(filename: string, source: string): Extraction {
         !rawScripts.some((range) => comment.start >= range.start && comment.end <= range.end),
     ),
     diagnostics,
+    embeddedDiagnostics,
   };
 }
 
@@ -242,26 +297,35 @@ function htmlAttribute(node: DefaultTreeAdapterTypes.Element, name: string): str
   return node.attrs.find((attribute) => attribute.name === name)?.value;
 }
 
+function htmlEmbeddedLanguage(node: DefaultTreeAdapterTypes.Element): "css" | "js" | undefined {
+  const type = htmlAttribute(node, "type");
+  if (node.tagName !== "style") return isJavaScriptType(type) ? "js" : undefined;
+  if (type && type.toLowerCase() !== "text/css")
+    throw new SourceParseError(
+      "unsupported HTML style language",
+      node.sourceCodeLocation?.attrs?.type?.startOffset ??
+        node.sourceCodeLocation?.startOffset ??
+        0,
+    );
+  return "css";
+}
+
 function htmlEmbeddedComments(
   node: DefaultTreeAdapterTypes.Element,
   source: string,
   filename: string,
 ): SourceDiagnostic[] {
+  if (node.namespaceURI !== html.NS.HTML && node.namespaceURI !== html.NS.SVG) return [];
   const start = node.sourceCodeLocation?.startTag?.endOffset;
   const end = node.sourceCodeLocation?.endTag?.startOffset ?? node.sourceCodeLocation?.endOffset;
   if (start === undefined || end === undefined) return [];
-  const type = htmlAttribute(node, "type");
-  if (node.tagName === "style") {
-    if (type && type.toLowerCase() !== "text/css")
-      throw new Error("unsupported HTML style language");
-  } else if (!isJavaScriptType(type)) return [];
+  const language = htmlEmbeddedLanguage(node);
+  if (!language) return [];
   const { content, sourceOffsetAt } = htmlEmbeddedSource(node, source, start, end);
-  return analyzeSource(`${filename}.${node.tagName === "style" ? "css" : "js"}`, content).map(
-    (diagnostic) => ({
-      ...diagnostic,
-      offset: sourceOffsetAt(diagnostic.offset),
-    }),
-  );
+  return analyzeSource(`${filename}.${language}`, content).map((diagnostic) => ({
+    ...diagnostic,
+    offset: sourceOffsetAt(diagnostic.offset),
+  }));
 }
 
 function htmlComments(filename: string, source: string): Extraction {
