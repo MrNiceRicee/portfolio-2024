@@ -17,8 +17,8 @@ const { title, description = "Josh's personal site" } = Astro.props;
 
 const buildTime = new Date();
 const noiseBackgroundSvg = `url(${noisySvg.src})`;
-const darkColor = "#181615";
-const lightColor = "#ebebec";
+const darkColor = "#0c0a09";
+const lightColor = "#fafaf9";
 ---
 
 <!doctype html>
@@ -29,22 +29,25 @@ const lightColor = "#ebebec";
     <meta name="description" content={description} />
     <SocialPreview title={title} description={description} />
     <PortfolioTypography />
-    <script is:inline>
-      const root = document.documentElement;
-      let savedTheme;
-      try { savedTheme = window.localStorage.getItem("portfolio-theme"); } catch {}
-      const preference = savedTheme === "light" || savedTheme === "dark" || savedTheme === "system" ? savedTheme : "system";
-      root.dataset.themePreference = preference;
-      root.classList.toggle("dark", preference === "dark"
-        || (preference === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches));
-    </script>
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
       id="apple-status-bar"
       content="default"
     />
-    <meta name="theme-color" id="theme-color" content={darkColor} />
+    <meta name="theme-color" id="theme-color" content={lightColor} />
+    <script is:inline define:vars={{ darkColor, lightColor }}>
+      const root = document.documentElement;
+      let savedTheme;
+      try { savedTheme = window.localStorage.getItem("portfolio-theme"); } catch {}
+      const preference = savedTheme === "light" || savedTheme === "dark" || savedTheme === "system" ? savedTheme : "system";
+      const dark = preference === "dark"
+        || (preference === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      root.dataset.themePreference = preference;
+      root.classList.toggle("dark", dark);
+      document.getElementById("theme-color").setAttribute("content", dark ? darkColor : lightColor);
+      document.getElementById("apple-status-bar").setAttribute("content", dark ? "black-translucent" : "default");
+    </script>
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
