@@ -10,11 +10,16 @@ if (!Astro.site) throw new Error("Social previews require Astro's production sit
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
 const assetBase = new URL(import.meta.env.SOCIAL_ASSET_BASE_URL || Astro.site);
 if (
-  assetBase.protocol !== "https:"
-  || assetBase.username || assetBase.password
-  || assetBase.pathname !== "/" || assetBase.search || assetBase.hash
+  assetBase.protocol !== "https:" ||
+  assetBase.username ||
+  assetBase.password ||
+  assetBase.pathname !== "/" ||
+  assetBase.search ||
+  assetBase.hash
 ) {
-  throw new Error("SOCIAL_ASSET_BASE_URL must be an HTTPS origin without credentials, path, query or fragment.");
+  throw new Error(
+    "SOCIAL_ASSET_BASE_URL must be an HTTPS origin without credentials, path, query or fragment.",
+  );
 }
 
 const videoUrl = new URL("/social/preview-v1.mp4", assetBase).href;

@@ -2,12 +2,17 @@
 @config "../../tailwind.config.mjs";
 
 @layer base {
-  /* keep the previous border and button defaults through the Tailwind 4 upgrade. */
-  *, ::after, ::before, ::backdrop, ::file-selector-button {
+  /* give borders and buttons explicit defaults. */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
     border-color: #e5e7eb;
   }
 
-  button:not(:disabled), [role="button"]:not(:disabled) {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
     cursor: pointer;
   }
 }

@@ -1,4 +1,4 @@
-/** Original dust/scratch ranges, with lifetime expressed in milliseconds at 60 Hz. */
+/** particle lifetime is expressed in milliseconds at 60 Hz. */
 class FilmParticle {
   x = 0;
   y = 0;
@@ -11,7 +11,7 @@ class FilmParticle {
   respawn(width: number, height: number) {
     this.x = Math.random() * width;
     this.y = Math.random() * height;
-    this.life = (Math.random() * 10 + 5) * 1000 / 60;
+    this.life = ((Math.random() * 10 + 5) * 1000) / 60;
     this.opacity = Math.random() * 0.5 + 0.1;
   }
   advance(elapsed: number, width: number, height: number) {
@@ -19,8 +19,7 @@ class FilmParticle {
     if (this.life < 0) this.respawn(width, height);
   }
   drawHeight() {
-    return this.size * (Math.random() > 0.99
-      ? Math.random() * 25 + 5 : Math.random() * 2 + 1);
+    return this.size * (Math.random() > 0.99 ? Math.random() * 25 + 5 : Math.random() * 2 + 1);
   }
 }
 
@@ -33,7 +32,9 @@ export function initializePortfolioFilm() {
   const canvas = document.querySelector<HTMLCanvasElement>("[data-portfolio-particles]");
   let ctx: CanvasRenderingContext2D | null = null;
   // unavailable canvas leaves the CSS grain and pause control usable
-  try { ctx = canvas?.getContext("2d") ?? null; } catch {}
+  try {
+    ctx = canvas?.getContext("2d") ?? null;
+  } catch {}
   const particles = ctx ? Array.from({ length: 15 }, () => new FilmParticle()) : [];
   const interval = 1000 / 60;
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
@@ -47,7 +48,7 @@ export function initializePortfolioFilm() {
 
   const resize = () => {
     if (!canvas || !ctx) return;
-    // keep the original CSS-pixel canvas without multiplying work by device DPR
+    // CSS-pixel resolution avoids multiplying canvas work by device DPR.
     const unchanged = canvas.width === window.innerWidth && canvas.height === window.innerHeight;
     if (canvas.width !== window.innerWidth) canvas.width = window.innerWidth;
     if (canvas.height !== window.innerHeight) canvas.height = window.innerHeight;
@@ -89,26 +90,46 @@ export function initializePortfolioFilm() {
   };
 
   // intersection observations include clipping by an embedding iframe's viewport
-  const observer = typeof IntersectionObserver === "undefined" ? undefined
-    : new IntersectionObserver(([entry]) => {
-      visible = entry?.isIntersecting === true;
-      update();
-    });
+  const observer =
+    typeof IntersectionObserver === "undefined"
+      ? undefined
+      : new IntersectionObserver(([entry]) => {
+          visible = entry?.isIntersecting === true;
+          update();
+        });
   observer?.observe(host);
   const options = { signal: lifecycle.signal };
-  button.addEventListener("click", () => { paused = !paused; update(); }, options);
+  button.addEventListener(
+    "click",
+    () => {
+      paused = !paused;
+      update();
+    },
+    options,
+  );
   document.addEventListener("visibilitychange", update, options);
   reducedMotion.addEventListener("change", update, options);
   forcedColors.addEventListener("change", update, options);
   window.addEventListener("resize", resize, options);
-  window.addEventListener("pageshow", () => { suspended = false; update(); }, options);
-  window.addEventListener("pagehide", (event) => {
-    suspended = true;
-    update();
-    if (event.persisted) return;
-    observer?.disconnect();
-    lifecycle.abort();
-  }, options);
+  window.addEventListener(
+    "pageshow",
+    () => {
+      suspended = false;
+      update();
+    },
+    options,
+  );
+  window.addEventListener(
+    "pagehide",
+    (event) => {
+      suspended = true;
+      update();
+      if (event.persisted) return;
+      observer?.disconnect();
+      lifecycle.abort();
+    },
+    options,
+  );
   resize();
   update();
 }

@@ -27,7 +27,9 @@ beforeAll(async () => {
       },
     })
     .on('head link[rel="canonical"]', {
-      element(element) { canonical = element.getAttribute("href"); },
+      element(element) {
+        canonical = element.getAttribute("href");
+      },
     })
     .on("head link", {
       element(element) {
@@ -37,7 +39,8 @@ beforeAll(async () => {
         iconPaths.add(url.pathname.slice(1));
       },
     })
-    .transform(new Response(homepage)).text();
+    .transform(new Response(homepage))
+    .text();
 
   const player = await readFile(new URL("social/player.html", output), "utf8");
   await new HTMLRewriter()
@@ -62,8 +65,13 @@ beforeAll(async () => {
         playerSource = { src: element.getAttribute("src"), type: element.getAttribute("type") };
       },
     })
-    .on("script", { element() { playerScripts += 1; } })
-    .transform(new Response(player)).text();
+    .on("script", {
+      element() {
+        playerScripts += 1;
+      },
+    })
+    .transform(new Response(player))
+    .text();
 });
 
 test("built homepage exposes video and image metadata without executing JavaScript", () => {
@@ -124,8 +132,12 @@ test("built preview resources exist, have the expected formats and fit the Messa
   const imagePath = new URL("social/preview-v1.jpg", output);
   const videoPath = new URL("social/preview-v1.mp4", output);
   const [image, video, imageInfo, videoInfo, pageInfo, playerInfo] = await Promise.all([
-    readFile(imagePath), readFile(videoPath), stat(imagePath), stat(videoPath),
-    stat(new URL("index.html", output)), stat(new URL("social/player.html", output)),
+    readFile(imagePath),
+    readFile(videoPath),
+    stat(imagePath),
+    stat(videoPath),
+    stat(new URL("index.html", output)),
+    stat(new URL("social/player.html", output)),
   ]);
   expect(image.subarray(0, 3)).toEqual(Buffer.from([0xff, 0xd8, 0xff]));
   expect(video.subarray(4, 8).toString("ascii")).toBe("ftyp");

@@ -1,7 +1,7 @@
 {
   "name": "portfolio-2024",
-  "type": "module",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
@@ -13,7 +13,13 @@
     "test": "bun test",
     "test:social": "NODE_ENV=${NODE_ENV:-production} bun --no-env-file test ./tests/social-preview.integration.js",
     "check": "astro check",
-    "deploy:dry-run": "bun run build && wrangler deploy --dry-run"
+    "deploy:dry-run": "bun run build && wrangler deploy --dry-run",
+    "lint:code": "oxlint --deny-warnings .",
+    "lint:comments": "bun scripts/check-comments.ts",
+    "lint": "bun run lint:code && bun run lint:comments",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "ci": "bun run lint && bun run format:check && bun run build"
   },
   "dependencies": {
     "@fontsource-variable/jetbrains-mono": "5.3.0",
@@ -21,14 +27,21 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@astrojs/compiler-rs": "0.5.2",
+    "@tailwindcss/vite": "4.3.3",
+    "@types/bun": "1.4.4",
+    "oxc-parser": "0.155.0",
+    "oxfmt": "0.74.0",
+    "oxlint": "1.89.0",
+    "parse5": "8.0.1",
+    "postcss": "8.5.30",
     "tailwindcss": "4.3.3",
     "typescript": "5.9.3",
     "vite": "8.3.4",
-    "wrangler": "4.150.0",
-    "@tailwindcss/vite": "4.3.3"
+    "wrangler": "4.150.0"
   },
-  "packageManager": "bun@1.4.2",
   "engines": {
     "node": ">=22.12.0"
-  }
+  },
+  "packageManager": "bun@1.4.2"
 }
