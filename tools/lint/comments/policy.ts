@@ -345,12 +345,9 @@ function informationalLines(comments: CommentSpan[], source: string): number {
 }
 
 function consecutiveLines(previous: CommentSpan, next: CommentSpan, source: string): boolean {
-  return (
-    previous.kind === "line" &&
-    next.kind === "line" &&
-    /^\s*$/u.test(source.slice(previous.end, next.start)) &&
-    lineAt(source, next.start) === lineAt(source, previous.start) + 1
-  );
+  if (previous.kind !== "line" || next.kind !== "line") return false;
+  const gap = source.slice(previous.end, next.start);
+  return /^\s*$/u.test(gap) && lineAt(gap, gap.length) === 2;
 }
 
 function analyzeSource(filename: string, source: string): SourceDiagnostic[] {

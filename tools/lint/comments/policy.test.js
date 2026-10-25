@@ -27,6 +27,17 @@ describe("informational comment limits", () => {
     expect(violations(`const x = 1; ${lineComments(four)}`)).toHaveLength(1);
   });
 
+  test("groups adjacent comments across every JavaScript line ending", () => {
+    for (const newline of ["\n", "\r\n", "\r", "\u2028", "\u2029"]) {
+      expect(violations(lineComments(four).replaceAll("\n", `${newline}\t `))[0].message).toContain(
+        "4 informational lines",
+      );
+      expect(
+        violations(`// one${newline}// two${newline}${newline}\t// three${newline}// four`),
+      ).toEqual([]);
+    }
+  });
+
   test("keeps groups apart across blank lines, code and same-line comments", () => {
     expect(violations(`${lineComments(three)}\n\n// fourth`)).toEqual([]);
     expect(

@@ -2,7 +2,6 @@
 @config "../../tailwind.config.mjs";
 
 @layer base {
-  /* give borders and buttons explicit defaults. */
   *,
   ::after,
   ::before,
