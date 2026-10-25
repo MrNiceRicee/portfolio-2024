@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "astro": {
+    "compressHTML": "html"
+  },
+  "ignorePatterns": [
+    "bun.lock",
+    "media/bun.lock",
+    "dist/**",
+    ".astro/**",
+    "media/assets/**",
+    "public/fonts/**",
+    "public/third-party/**"
+  ]
+}

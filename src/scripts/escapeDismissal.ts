@@ -9,10 +9,17 @@ export function registerEscapeDismissal(
   target.addEventListener("keydown", (rawEvent) => {
     const event = rawEvent as KeyboardEvent;
     if (
-      event.key !== "Escape" || event.defaultPrevented || event.isComposing ||
-      event.repeat || event.ctrlKey || event.altKey || event.metaKey ||
-      event.shiftKey || ownsInteraction(event)
-    ) return;
+      event.key !== "Escape" ||
+      event.defaultPrevented ||
+      event.isComposing ||
+      event.repeat ||
+      event.ctrlKey ||
+      event.altKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      ownsInteraction(event)
+    )
+      return;
 
     // Wait for the entire dispatch, including later listeners on this target.
     // A microtask can run between browser event listeners, so use a task here.

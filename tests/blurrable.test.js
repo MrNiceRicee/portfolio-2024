@@ -11,7 +11,9 @@ function component({ popoverSupported = true, modal = false, popover = false } =
     attributes = new Map([["aria-pressed", "false"]]);
     isContentEditable = false;
     tagName = "BUTTON";
-    setAttribute(name, value) { this.attributes.set(name, value); }
+    setAttribute(name, value) {
+      this.attributes.set(name, value);
+    }
     matches(selector) {
       return selector.split(", ").some((tag) => tag.toUpperCase() === this.tagName);
     }
@@ -32,20 +34,38 @@ function component({ popoverSupported = true, modal = false, popover = false } =
   };
   const CSS = {
     supports(query) {
-      if (query !== "selector(:popover-open)") throw new Error(`Unexpected feature query: ${query}`);
+      if (query !== "selector(:popover-open)")
+        throw new Error(`Unexpected feature query: ${query}`);
       return popoverSupported;
     },
   };
   let Blurrable;
-  const customElements = { define(_name, constructor) { Blurrable = constructor; } };
-  const source = readFileSync(new URL("../src/components/Blurrable.astro", import.meta.url), "utf8");
+  const customElements = {
+    define(_name, constructor) {
+      Blurrable = constructor;
+    },
+  };
+  const source = readFileSync(
+    new URL("../src/components/Blurrable.astro", import.meta.url),
+    "utf8",
+  );
   const script = source.match(/<script>([\s\S]*?)<\/script>/)[1];
   const executable = new Bun.Transpiler({ loader: "ts" }).transformSync(
-    script.replace(/import\s+\{\s*registerEscapeDismissal\s*\}\s+from\s+"\.\.\/scripts\/escapeDismissal";/, ""),
+    script.replace(
+      /import\s+\{\s*registerEscapeDismissal\s*\}\s+from\s+"\.\.\/scripts\/escapeDismissal";/,
+      "",
+    ),
   );
-  new Function("window", "document", "CSS", "customElements", "HTMLElement", "Element", "registerEscapeDismissal", executable)(
-    window, document, CSS, customElements, TestElement, TestElement, registerEscapeDismissal,
-  );
+  new Function(
+    "window",
+    "document",
+    "CSS",
+    "customElements",
+    "HTMLElement",
+    "Element",
+    "registerEscapeDismissal",
+    executable,
+  )(window, document, CSS, customElements, TestElement, TestElement, registerEscapeDismissal);
   return {
     reveal() {
       const element = new Blurrable();
@@ -97,9 +117,12 @@ test("an open supported popover owns Escape", async () => {
   expect(button.dataset.status).toBe("active");
 });
 
-test.each(["INPUT", "TEXTAREA", "SELECT", "DIV"])("editing %s owns Escape through the composed path", async (tagName) => {
-  const runtime = component({ popoverSupported: false });
-  const button = runtime.reveal();
-  await runtime.escape([runtime.editingElement(tagName, tagName === "DIV")]);
-  expect(button.dataset.status).toBe("active");
-});
+test.each(["INPUT", "TEXTAREA", "SELECT", "DIV"])(
+  "editing %s owns Escape through the composed path",
+  async (tagName) => {
+    const runtime = component({ popoverSupported: false });
+    const button = runtime.reveal();
+    await runtime.escape([runtime.editingElement(tagName, tagName === "DIV")]);
+    expect(button.dataset.status).toBe("active");
+  },
+);

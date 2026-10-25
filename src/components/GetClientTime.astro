@@ -3,10 +3,10 @@ import { lastUpdated } from "../constants/lastUpdated";
 ---
 
 <p>
-  last updated on <time
-    class="tabular-nums"
-    datetime={lastUpdated}
-    data-client-time>{new Date(lastUpdated).toUTCString()}</time>
+  last updated on
+  <time class="tabular-nums" datetime={lastUpdated} data-client-time
+    >{new Date(lastUpdated).toUTCString()}</time
+  >
 </p>
 
 <script>

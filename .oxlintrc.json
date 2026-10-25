@@ -1,0 +1,10 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "complexity": ["error", { "max": 15, "variant": "classic" }]
+  },
+  "ignorePatterns": ["dist/**", ".astro/**", "media/assets/**", "public/third-party/**"]
+}

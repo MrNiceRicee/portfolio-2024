@@ -19,18 +19,53 @@ Tailwind **4.3.3** uses its official Vite plugin. The existing JavaScript config
 
 Run these from the project directory:
 
-| Command | Purpose |
-| --- | --- |
-| `bun run dev` | Start Astro's development server. |
-| `bun run test` | Run the existing Bun behavior tests. |
-| `bun run test:social` | Verify the built homepage metadata, player and preview resources in `dist/`. Run after building. |
-| `bun run check` | Check Astro and TypeScript source. |
-| `bun run build` | Run tests, source checks and the static build into `dist/`. |
-| `bun run preview` | Build, then serve the static output locally with Wrangler at `http://localhost:8787`. |
-| `bun run deploy:dry-run` | Build and validate Workers packaging without uploading or deploying. |
-| `bun run deploy` | Build and deploy to Cloudflare Workers; this changes the live Worker. |
-| `bun run update-stamp` | Write the current UTC timestamp to `src/constants/lastUpdated.ts`. Run intentionally when updating site content. |
-| `bun run astro -- --help` | Show Astro CLI options. |
+| Command                   | Purpose                                                                                                          |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `bun run dev`             | Start Astro's development server.                                                                                |
+| `bun run test`            | Run the existing Bun behavior tests.                                                                             |
+| `bun run test:social`     | Verify the built homepage metadata, player and preview resources in `dist/`. Run after building.                 |
+| `bun run check`           | Check Astro and TypeScript source.                                                                               |
+| `bun run build`           | Run tests, source checks and the static build into `dist/`.                                                      |
+| `bun run lint`            | Run Oxlint and the source-comment policy.                                                                        |
+| `bun run format`          | Format authored files with Oxfmt.                                                                                |
+| `bun run format:check`    | Check formatting without writing files.                                                                          |
+| `bun run ci`              | Run lint, formatting checks and the complete build/test chain.                                                   |
+| `bun run preview`         | Build, then serve the static output locally with Wrangler at `http://localhost:8787`.                            |
+| `bun run deploy:dry-run`  | Build and validate Workers packaging without uploading or deploying.                                             |
+| `bun run deploy`          | Build and deploy to Cloudflare Workers; this changes the live Worker.                                            |
+| `bun run update-stamp`    | Write the current UTC timestamp to `src/constants/lastUpdated.ts`. Run intentionally when updating site content. |
+| `bun run astro -- --help` | Show Astro CLI options.                                                                                          |
+
+## Linting, formatting and comments
+
+The comment-lint tool and its tests live in `tools/lint/comments/`: `check.ts` is the CLI, `policy.ts` analyzes source comments, `astroContext.ts` tracks markup contexts, and `htmlSource.ts` preserves original source positions during HTML normalization. Application behavior tests remain in `tests/`.
+
+Oxlint and Oxfmt are pinned in the lockfile. Oxlint checks JavaScript, TypeScript, TSX and the JavaScript portions of Astro files; `astro check` retains template/type coverage. Oxfmt also formats Astro, CSS, HTML, JSON, YAML and Markdown. Its Astro whitespace mode matches the application's `compressHTML: true` setting. Generated files, binary assets and third-party licenses are excluded from formatting.
+
+Cyclomatic complexity is limited to **15 per function**, using the classic metric. Informational comments are limited to **three nonblank prose lines** per block or adjacent group of `//` comments. Delimiters, JSDoc tags and their type/parameter/return descriptions, and required tool directives do not consume that limit. Comment extraction uses parsers for JavaScript/TypeScript/TSX, Astro, CSS and HTML, so quoted comment markers are not treated as comments.
+
+Astro markup follows native HTML text contexts, SVG/MathML integration points and case-insensitive script `type` attributes. Lowercase `<script>` and `<style>` use Astro's raw-source parsing. Browser-native script/style extraction applies to HTML and SVG; direct MathML script/style tags are ordinary text. Mixed-case native tags such as `<sCript>` and `<sTyle>` require literal executable bodies and a known native namespace. Templated executable bodies and unknown namespaces, including those under components or affected by dynamic MathML integration attributes, are rejected with a positioned diagnostic. Foreign-content markup that triggers browser stack correction, or contains an opaque component outside an HTML integration point, is also rejected rather than assigned a guessed namespace. Font attribute spreads in foreign content are rejected because they can trigger the same correction. The checker analyzes authored source without evaluating runtime rendering or injected HTML. Non-JavaScript script data remains exempt from JavaScript parsing; genuine Astro expression comments are still checked.
+
+Section/file banners are exempt, including diagrams. Use paired decorative fences or an explicit `@file`, `@fileoverview` or `@section` marker:
+
+```js
+/**
+ * @section Appearance lifecycle
+ * startup -> saved preference -> page colors
+ * menu -----------------------> preference
+ * system changes -------------> system preference only
+ */
+```
+
+Comments should explain the code or its contract. Implementation decisions and change history belong in the PR or Git history. The checker enforces comment structure and length; reviewers judge whether the explanation is useful.
+
+## CI and production builds
+
+The `CI` GitHub Actions check runs on pull requests targeting `main` and on pushes to `main`. It installs the committed dependency graph with `bun install --frozen-lockfile`, then runs `bun run ci`. The workflow pins Bun **1.4.2**, Node.js **24.21.0** and its action revisions. It has no deployment credentials or deployment step.
+
+Cloudflare **Pages** currently hosts production through its Git integration. Its build command is `bun run build`, its output directory is `dist`, and its production branch is `main`. Both the dashboard settings and an actual production build were verified with Bun **1.4.2**, Node.js **24.21.0** and `bun install --frozen-lockfile`. Pages runs the build gates for previews and production; GitHub CI additionally enforces linting and formatting before merge. Keep the **CI** and **Cloudflare Pages** checks required for `main`.
+
+To inspect a deployment, open **Workers & Pages → portfolio-2024 → Deployments**, select the commit, and read its **Build log**. Build settings live under the project's **Settings → Build configuration** and **Variables and secrets**. The `wrangler.toml` below describes a separate optional Workers deployment; it does not control the current Pages build settings.
 
 ## Social previews
 

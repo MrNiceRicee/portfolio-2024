@@ -30,23 +30,27 @@ const lightColor = "#fafaf9";
     <SocialPreview title={title} description={description} />
     <PortfolioTypography />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      id="apple-status-bar"
-      content="default"
-    />
+    <meta name="apple-mobile-web-app-status-bar-style" id="apple-status-bar" content="default" />
     <meta name="theme-color" id="theme-color" content={lightColor} />
     <script is:inline define:vars={{ darkColor, lightColor }}>
       const root = document.documentElement;
       let savedTheme;
-      try { savedTheme = window.localStorage.getItem("portfolio-theme"); } catch {}
-      const preference = savedTheme === "light" || savedTheme === "dark" || savedTheme === "system" ? savedTheme : "system";
-      const dark = preference === "dark"
-        || (preference === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      try {
+        savedTheme = window.localStorage.getItem("portfolio-theme");
+      } catch {}
+      const preference =
+        savedTheme === "light" || savedTheme === "dark" || savedTheme === "system"
+          ? savedTheme
+          : "system";
+      const dark =
+        preference === "dark" ||
+        (preference === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
       root.dataset.themePreference = preference;
       root.classList.toggle("dark", dark);
       document.getElementById("theme-color").setAttribute("content", dark ? darkColor : lightColor);
-      document.getElementById("apple-status-bar").setAttribute("content", dark ? "black-translucent" : "default");
+      document
+        .getElementById("apple-status-bar")
+        .setAttribute("content", dark ? "black-translucent" : "default");
     </script>
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -61,74 +65,54 @@ const lightColor = "#fafaf9";
   >
     <slot />
     <footer data-portfolio-footer class="mt-56 px-4">
-      <div class="w-full h-[1px] bg-zinc-500 dark:bg-zinc-600 slight-x-mask">
-      </div>
+      <div class="w-full h-[1px] bg-zinc-500 dark:bg-zinc-600 slight-x-mask"></div>
       <section data-footer-content class="mx-auto max-w-2xl py-10 font-mono text-pretty space-y-8">
         <div>
           <a data-type="entry" href="/" class="font-mono">Joshua Constantine Santos</a>
           <p data-type="prose" class="text-sm">
-            <span class="text-zinc-500 dark:text-zinc-400">
-              connect with me
-            </span>
-            <a
-              href="https://www.twitter.com/mrnicericee"
-              target="_blank"
-              class="underline">@Twitter</a
+            <span class="text-zinc-500 dark:text-zinc-400"> connect with me </span>
+            <a href="https://www.twitter.com/mrnicericee" target="_blank" class="underline"
+              >@Twitter</a
             >
             <span class="text-zinc-500 dark:text-zinc-400"> or on </span>
             <a
               href="https://www.linkedin.com/in/joshua-constantine-santos/"
               target="_blank"
-              class="underline">LinkedIn</a
-            ><span class="text-zinc-500 dark:text-zinc-400"
-              >. Look through some of my code on
-            </span>
-            <a
-              href="https://github.com/mrnicericee"
-              target="_blank"
               class="underline"
-            >
-              GitHub</a
-            >
+              >LinkedIn</a
+            ><span class="text-zinc-500 dark:text-zinc-400">. Look through some of my code on
+            </span>
+            <a href="https://github.com/mrnicericee" target="_blank" class="underline"> GitHub</a>
           </p>
         </div>
         <p data-type="prose" class="text-sm">
-          <span class="text-zinc-500 dark:text-zinc-400">
-            Silly little guy made by
-          </span>
-          <span class="whitespace-nowrap"><a
-              href="https://gyuppii.carrd.co"
-              target="_blank"
-              class="underline">Gyuppii</a
-            >.</span
-          ><Blurrable
-            ><span class="text-zinc-500 dark:text-zinc-400"
-              >I absolutely <bold class="font-bold">love</bold> the silly little
-              guy, on mobile he goes to the bottom right corner and just chills.
+          <span class="text-zinc-500 dark:text-zinc-400"> Silly little guy made by </span>
+          <span class="whitespace-nowrap"
+            ><a href="https://gyuppii.carrd.co" target="_blank" class="underline">Gyuppii</a>.</span
+          ><Blurrable><span class="text-zinc-500 dark:text-zinc-400">I absolutely
+              <bold class="font-bold">love</bold> the silly little guy, on mobile he goes to the
+              bottom right corner and just chills.
             </span>
           </Blurrable>
         </p>
         <div data-type="metadata" class="space-y-2 text-sm pb-6">
           <GetClientTime />
           <p>
-            build time <span class="tabular-nums"
-              >{
-                Intl.DateTimeFormat(undefined, {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
-                  second: "numeric",
-                }).format(buildTime)
-              }</span
+            build time
+            <span class="tabular-nums"
+              >{Intl.DateTimeFormat(undefined, {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "numeric",
+                minute: "numeric",
+                second: "numeric",
+              }).format(buildTime)}</span
             >
           </p>
           <p>
-            Built in
-            <a href="https://astro.build/" target="_blank" class="underline"
-              >Astro</a
-            >, made with ❤️
+            Built in <a href="https://astro.build/" target="_blank" class="underline">Astro</a>,
+            made with ❤️
           </p>
         </div>
       </section>
@@ -209,7 +193,8 @@ const lightColor = "#fafaf9";
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .grainy-light, html.dark .grainy-light {
+    .grainy-light,
+    html.dark .grainy-light {
       animation: none;
     }
   }

@@ -12,6 +12,6 @@ const assets = [
 
 await mkdir(new URL("public/", root), { recursive: true });
 await mkdir(new URL("../public/social/", root), { recursive: true });
-await Promise.all(assets.map(([source, name]) =>
-  copyFile(new URL(source, root), new URL(`public/${name}`, root)),
-));
+await Promise.all(
+  assets.map(([source, name]) => copyFile(new URL(source, root), new URL(`public/${name}`, root))),
+);

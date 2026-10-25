@@ -1,13 +1,13 @@
-import { defineConfig, passthroughImageService } from 'astro/config';
-import tailwindcss from '@tailwindcss/vite';
+import { defineConfig, passthroughImageService } from "astro/config";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  site: 'https://www.joshsantos.me',
-  output: 'static',
+  site: "https://www.joshsantos.me",
+  output: "static",
   vite: {
     plugins: [tailwindcss()],
   },
-  // preserve spaces between inline elements when upgrading from Astro 4.
+  // retain meaningful spaces between adjacent inline elements.
   compressHTML: true,
   image: {
     service: passthroughImageService(),
